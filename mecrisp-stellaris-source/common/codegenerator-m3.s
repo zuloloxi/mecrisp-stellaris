@@ -569,14 +569,13 @@ dodoes:
                @ Einen abziehen. Diese Adresse ist schon ungerade für Thumb-2, aber callkomma fügt nochmal eine 1 dazu. 
                @ Subtract one. Adress is already uneven for Thumb-instructionset, but callkomma will add one anyway.
 
-  bl fadenende_einsprungadresse @ Get the address the long call has to be inserted.
-
     @ Dictionary-Pointer verbiegen:
       @ Dictionarypointer sichern
       ldr r2, =Dictionarypointer
       ldr r3, [r2] @ Alten Dictionarypointer auf jeden Fall bewahren  Save old Dictionarypointer.
 
-  popda r1     @ r1 enthält jetzt die Codestartadresse der aktuellen Definition.
+  ldr r1, =Einsprungpunkt @ Get the address the long call has to be inserted.
+  ldr r1, [r1] @ r1 enthält jetzt die Codestartadresse der aktuellen Definition.
 
   @ This is to align dictionary pointer to have does> target locations that are always 4-even
   movs r0, #2

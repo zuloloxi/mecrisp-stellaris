@@ -99,35 +99,6 @@ sammeltabellemalen: @ ( -- ) Malt den Inhalt der Sammeltabelle
   .endif
 
 @ -----------------------------------------------------------------------------
-@  Wortbirne Flag_visible, "stsuchen" @ ( Adresse -- Inhalt ) Sucht einen Eintrag in der Tabelle
-sammeltabellensuche: @ Searches for an entry in collection table for the cases some data is needed but
-                     @ not written yet because the neighbour is missing. This happens in recurse and dodoes.
-@ -----------------------------------------------------------------------------
-  ldr r0, =Sammeltabelle
-  movs r1, #Sammelstellen
-
-1:ldrh r2, [r0]
-  ldrh r3, [r0, #2]
-  lsls r3, #16
-  orrs r2, r3
-
-  cmp r2, tos @ Ist das passende Päärchen gefunden ?
-  beq 2f
-
-  @ Ansonsten weitersuchen:
-  adds r0, #6
-  subs r1, #1
-  bne 1b
-
-  @ Nicht gefunden: Suche eine leere Stelle in der Tabelle !
-  Fehler_Quit "Location not found in Flash write collection table."
-
-2:ldrh tos, [r0, #4] @ Inhalt für diese Stelle zurückgeben.
-  bx lr
-
-
-
-@ -----------------------------------------------------------------------------
   Wortbirne Flag_visible, "hflash!" @ Übernimmt die Rolle des großen hflash! :-)
 h_flashkomma: @ ( x addr -- ) Fügt einen Eintrag in die Tabelle ein und brennt Päärchen.
               @ Emulates hflash! - collects values in table and writes completed pairs.
@@ -139,12 +110,11 @@ h_flashkomma: @ ( x addr -- ) Fügt einen Eintrag in die Tabelle ein und brennt 
   push {r4, r5, lr}
 
   popda r2 @ Adresse
-  @ popda r3 @ Inhalt
+  @ TOS:   @ Inhalt
 
   @ Prüfe, ob die Adresse gerade ist
-  movs r0, #1
-  ands r0, r2
-  beq 1f
+  lsrs r0, r2, #1
+  bcc 1f
     Fehler_Quit "hflash! needs even addresses."
 1:
 
@@ -184,7 +154,7 @@ h_flashkomma: @ ( x addr -- ) Fügt einen Eintrag in die Tabelle ein und brennt 
   lsls r5, #16
   orrs r4, r5
 
-  cmp r4, #0 @ Ist eine leere Stelle aufgetaucht ? Is this table place empty ?
+  @ Ist eine leere Stelle aufgetaucht ? Is this table place empty ?
   beq.n hflashstoreemulation_leerestelle
 
   @ Ansonsten weitersuchen:
@@ -203,7 +173,6 @@ hflashstoreemulation_leerestelle:
   strh r2, [r0, #2]
   strh tos, [r0, #4]
   drop
- @ writeln "In Tabelle eingefügt"
   pop {r4, r5, pc}
 
 hflashstoreemulation_gefunden: @ Found !
@@ -242,6 +211,4 @@ hflashstoreemulation_gefunden: @ Found !
   strh r1, [r0, #4]
 
   bl flashkomma
-
- @ writeln "Päärchen geschrieben"
   pop {r4, r5, pc}

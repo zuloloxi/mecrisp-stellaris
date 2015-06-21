@@ -80,6 +80,10 @@ smudge:
       bl sammeltabelleleerprobe @ Did all 16-Bit Flash writes found their address pair value ?
     .endif                      @ This check is included just to be sure.
 
+    .ifdef universalflashinforth
+    bl flushflash
+    .endif
+
     pop {pc}
 
   @ -----------------------------------------------------------------------------
@@ -550,8 +554,6 @@ create: @ Nimmt das nächste Token aus dem Puffer,
   ldr r0, =Fadenende @ Hole das aktuelle Fadenende  Fetch old latest
   ldr r1, [r0]
 
-  @ adds r1, #2 @ Flag-Feld überspringen  Skip its Flags
-
   ldr r2, [r1] @ Inhalt des Link-Feldes holen  Check if Link is set
 
   ldr r3, =erasedword
@@ -573,9 +575,8 @@ create: @ Nimmt das nächste Token aus dem Puffer,
   @ Fadenende aktualisieren:  Set fresh latest.
   str tos, [r0] @ Neues-Fadenende in die Fadenende-Variable legen
   drop
-  @ Fertig :-)  Finished :-)
-  pop {pc}
 
+  b.n create_ende
 
   @ -----------------------------------------------------------------------------
   @ Create for RAM
@@ -600,6 +601,13 @@ create_ram:
 
   @ Den Namen schreiben  Write Name
   bl stringkomma
+
+
+create_ende: @ Save code entry point of current definition for recurse and dodoes
+  ldr r0, =Dictionarypointer
+  ldr r1, [r0]
+  ldr r0, =Einsprungpunkt
+  str r1, [r0]
 
   @ Fertig :-)  Finished :-)
   pop {pc}

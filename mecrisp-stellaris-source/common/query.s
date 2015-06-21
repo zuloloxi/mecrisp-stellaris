@@ -211,4 +211,3 @@ query: @ ( -- ) Nimmt einen String in den Eingabepuffer auf
   bl setsource
   
   pop {r0, r1, r2, r3, pc}
-  .ltorg

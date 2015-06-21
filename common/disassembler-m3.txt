@@ -247,7 +247,7 @@
 
 disasm-fetch \ Instruction opcode on stack the whole time.
 
-$4140 $FFC0 opcode? if ." adc"  0 reg. 3 reg. then           \ ADC
+$4140 $FFC0 opcode? if ." adcs"  0 reg. 3 reg. then          \ ADC
 $1C00 $FE00 opcode? if ." adds" 0 reg. 3 reg. 6 imm3. then   \ ADD(1) small immediate two registers
 $3000 $F800 opcode? if ." adds" 8 reg. 0 imm8. then          \ ADD(2) big immediate one register
 $1800 $FE00 opcode? if ." adds" 0 reg. 3 reg. 6 reg. then    \ ADD(3) three registers

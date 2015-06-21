@@ -164,56 +164,10 @@ retkomma: @ Write pop {pc} opcode
 @------------------------------------------------------------------------------
   Wortbirne Flag_immediate_compileonly, "recurse" @ Für Rekursion. Führt das gerade frische Wort aus. Execute freshly defined definition.
 @------------------------------------------------------------------------------
-  push {lr}
-  bl fadenende_einsprungadresse
-  bl callkomma
-  pop {pc}
-
-@------------------------------------------------------------------------------
-fadenende_einsprungadresse: @ Kleines Helferlein spart Platz
-                            @ Calculate code start address of current latest definition
-@------------------------------------------------------------------------------
-  push {r0, r1, r2, r3, lr} @ Vermutlich unnötig, wird nur in dodoes und recurse benutzt.
-  ldr r0, =Fadenende
-  ldr r0, [r0]
-
-  @ --> Codestartadresse, analog zur Routine in words
-
-        @ Flagfeld
-        @adds r0, #2
-
-        @ Link
-        @adds r0, #4
-        adds r0, #6  @ Skip Flags and Link
-
-        ldrb r1, [r0] @ Länge des Strings holen                   Length of Name
-
-  .ifdef emulated16bitflashwrites
-  @ If 16-Bit Flash writes are emulated, the name length byte may not be set yet.
-  cmp r1, #erasedbyte
-  bne 1f
-  @ It is not set. That means that the length byte is in the Flash write buffer.
-  @ Scan the buffer for the needed address !
-  pushda r0 @ Address to search for...
-  push {r0}
-  bl sammeltabellensuche
-@  writeln "Fadenende-Einsprungadresse suchte im Flashpuffer"
-  pop {r0}
-  movs r1, #0xff @ Mask for low byte
-  ands r1, tos
-  drop  
-1:
-  .endif
-
-        adds r1, #1  @ Plus 1 Byte für die Länge                One more for length byte
-        movs r2, #1  @ Wenn es ungerade ist, noch einen mehr:  Maybe one more for aligning
-        ands r2, r1
-        adds r1, r2
-        adds r0, r1
-
-  @ r0 enthält jetzt die Codestartadresse der aktuellen Definition.
-  pushda r0
-  pop {r0, r1, r2, r3, pc}
+  pushdatos
+  ldr tos, =Einsprungpunkt
+  ldr tos, [tos]
+  b.n callkomma
 
 @ -----------------------------------------------------------------------------
   Wortbirne Flag_visible|Flag_variable, "state" @ ( -- addr )
@@ -289,8 +243,7 @@ fadenende_einsprungadresse: @ Kleines Helferlein spart Platz
 execute:
 @ -----------------------------------------------------------------------------
   popda r0
-  adds r0, #1 @ Ungerade Adresse für Thumb-Befehlssatz
-  mov pc, r0  @ Uneven address für Thumb-Instructionset
+  mov pc, r0
 
 @ -----------------------------------------------------------------------------
   Wortbirne Flag_immediate, "immediate" @ ( -- )

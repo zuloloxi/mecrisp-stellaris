@@ -103,9 +103,9 @@ rlooplimit .req r5
   ldr r2, [r3]  @ mov @r10, -2(r10)
   subs r3, #4 
   str r2, [r3]
-  adds r3, #4
+@  adds r3, #4
 
-  adds r3, #4
+  adds r3, #8
   cmp r3, r1 @ r1 enthält die Stelle am Ende
   bne 1b 
 

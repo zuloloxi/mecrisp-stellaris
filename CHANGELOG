@@ -295,3 +295,9 @@
 
   - New target: STM32F303VCT6 on STM F3 Discovery
   - New target: STM32L152RE   on STM Nucleo L152RE
+
+23.08.2014, Matthias Koch, Mecrisp-Stellaris 2.0.3
+
+  - Bugfix: Double division
+  - Some small optimisations in core
+  - Assembler for Cortex M0 added

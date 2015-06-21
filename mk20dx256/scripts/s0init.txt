@@ -434,7 +434,7 @@ $E000E018 constant NVIC_ST_CURRENT_R
 ;
 : disasm ( -- )
 disasm-fetch
-$4140 $FFC0 opcode? if ." adc" 0 reg. 3 reg. then 
+$4140 $FFC0 opcode? if ." adcs" 0 reg. 3 reg. then 
 $1C00 $FE00 opcode? if ." adds" 0 reg. 3 reg. 6 imm3. then 
 $3000 $F800 opcode? if ." adds" 8 reg. 0 imm8. then 
 $1800 $FE00 opcode? if ." adds" 0 reg. 3 reg. 6 reg. then 

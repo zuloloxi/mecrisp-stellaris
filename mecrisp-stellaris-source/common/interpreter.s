@@ -579,6 +579,10 @@ quit:
    bl sammeltabelleleeren
   .endif
 
+  .ifdef universalflashinforth
+  bl initflash
+  .endif
+
   @ Base und State setzen
 
   ldr r0, =base

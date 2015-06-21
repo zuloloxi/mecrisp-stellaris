@@ -33,6 +33,7 @@ ramallot Fadenende, 4
 ramallot konstantenfaltungszeiger, 4
 ramallot leavepointer, 4
 ramallot Datenstacksicherung, 4
+ramallot Einsprungpunkt, 4
 
 @ Variablen für das Flashdictionary  Variables for Flash management
 
@@ -96,22 +97,18 @@ CoreDictionaryAnfang: @ Dictionary-Einsprungpunkt setzen
   .endif
 
   .include "../common/calculations.s"
-  .ltorg @ Mal wieder Konstanten schreiben
   .include "terminal.s"
   .include "../common/query.s"
+  .ltorg @ Mal wieder Konstanten schreiben
   .include "../common/strings.s"
   .include "../common/deepinsight.s"
   .ltorg @ Mal wieder Konstanten schreiben
   .include "../common/compiler.s"
-  .ltorg @ Mal wieder Konstanten schreiben
   .include "../common/compiler-flash.s"
-  .ltorg @ Mal wieder Konstanten schreiben
   .include "../common/controlstructures.s"
   .ltorg @ Mal wieder Konstanten schreiben
   .include "../common/doloop.s"
-  .ltorg @ Mal wieder Konstanten schreiben
   .include "../common/case.s"
-  .ltorg @ Mal wieder Konstanten schreiben
   .include "../common/token.s"
   .ltorg @ Mal wieder Konstanten schreiben
   .include "../common/numberstrings.s"

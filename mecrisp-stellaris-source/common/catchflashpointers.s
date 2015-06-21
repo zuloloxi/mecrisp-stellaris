@@ -177,3 +177,7 @@ Sucheflashpointer_Speicherbelegung_fertig:
    @ Prepare 16-Bit Flash write emulation value-and-location collection table
    bl sammeltabelleleeren
   .endif
+
+  .ifdef universalflashinforth
+  bl initflash
+  .endif

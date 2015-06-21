@@ -83,28 +83,25 @@ key:
 
 @------------------------------------------------------------------------------
   Wortbirne Flag_visible, "emit?" @ ( -- ? )
-@------------------------------------------------------------------------------  
-  push {lr} @ Not used in core, no need to save registers
+@------------------------------------------------------------------------------
   ldr r0, =hook_qemit
-  bl hook_intern
-  pop {pc}
+  ldr r0, [r0]
+  mov pc, r0
 
 @------------------------------------------------------------------------------
   Wortbirne Flag_visible, "key?" @ ( -- ? )
 @------------------------------------------------------------------------------  
-  push {lr} @ Not used in core, no need to save registers
   ldr r0, =hook_qkey
-  bl hook_intern
-  pop {pc}
+  ldr r0, [r0]
+  mov pc, r0
 
 @------------------------------------------------------------------------------
   Wortbirne Flag_visible, "pause" @ ( -- ? )
 pause:
 @------------------------------------------------------------------------------  
-  push {lr} @ Not directly used in core, no need to save registers
   ldr r0, =hook_pause
-  bl hook_intern
-  pop {pc}
+  ldr r0, [r0]
+  mov pc, r0
 
 @------------------------------------------------------------------------------
 hook_intern:

@@ -120,9 +120,7 @@ space:
   cmp tos, #0
   ble 2f
   
-1:pushdaconst 32
-  bl emit
-
+1:bl space
   subs tos, #1
   bne 1b
 
