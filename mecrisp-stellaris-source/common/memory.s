@@ -293,23 +293,65 @@ move:  @ ( Quelladdr Zieladdr Byteanzahl -- ) ( Source Destination Count -- )
   bx lr
 
 @ -----------------------------------------------------------------------------
-  Wortbirne Flag_inline, "bit@" @ ( x 32-addr -- Flag )  Check bits
+  Wortbirne Flag_inline|Flag_opcodierbar_Spezialfall, "bit@" @ ( x 32-addr -- Flag )  Check bits
   @ Prüft, ob Bits in der Speicherstelle gesetzt sind
 @ -----------------------------------------------------------------------------
   ldm psp!, {r0} @ Bitmaske holen
   ldr tos, [tos] @ Speicherinhalt holen
+struktur_bitfetch:
   ands tos, r0   @ Bleibt nach AND etwas über ?
 
   .ifdef m0core
-  beq 1f
-  movs tos, #0
+  subs tos, #1
+  sbcs tos, tos
   mvns tos, tos
-1:bx lr
+  bx lr
   .else
   it ne
   movne tos, #-1 @ Bleibt etwas über, mache ein ordentliches true-Flag daraus.
   bx lr
   .endif
+
+  @------------------------------------------------------------------------------
+  @ Opcodable optimisations enter here.
+  ldr r2, =0x6800 @ ldr r0, [r0, #0] Opcode
+
+bitfetch_opcoding:
+    push {lr}
+    cmp r3, #1
+    bne 2f
+
+    @ Exactly one folding constant available
+    @ Encode the address
+    pushdaconst 0
+    bl registerliteralkomma
+    @ subs r3, #1 @ Not necessary
+
+    pushda r2 @ ldr... r0, [r0, #0] Opcode
+    bl hkomma
+    b.n 3f
+
+2:  @ Two or more folding constants available
+    @ Fetch the Bitmask from the stack and write all folding constants left.
+    ldmia psp!, {r1} @ NOS into r1
+    subs r3, #1 @ One constant less to write
+    bl konstantenschreiben @ Write all other constants in dictionary
+
+    @ Address is now already in TOS. Generate fetch opcode:
+    pushdaconst 0x0036
+    orrs tos, r2 @ ldr... r6 [ r6 #0 ] Opcode
+    bl hkomma
+
+    @ Encode the bitmask into r0.
+    pushda r1
+    pushdaconst 0
+    bl registerliteralkomma
+
+3:  pushdatos
+    ldr tos, =struktur_bitfetch
+    bl inlinekomma
+
+    pop {pc}
 
 @ -----------------------------------------------------------------------------
   Wortbirne Flag_inline|Flag_opcodierbar_Speicherschreiben, "hbis!" @ ( x 16-addr -- )  Set bits
@@ -381,7 +423,7 @@ move:  @ ( Quelladdr Zieladdr Byteanzahl -- ) ( Source Destination Count -- )
   bx lr
 
 @ -----------------------------------------------------------------------------
-  Wortbirne Flag_inline, "hbit@" @ ( x 16-addr -- Flag )  Check bits
+  Wortbirne Flag_inline|Flag_opcodierbar_Spezialfall, "hbit@" @ ( x 16-addr -- Flag )  Check bits
   @ Prüft, ob Bits in der Speicherstelle gesetzt sind
 @ -----------------------------------------------------------------------------
   ldm psp!, {r0}  @ Bitmaske holen
@@ -389,15 +431,20 @@ move:  @ ( Quelladdr Zieladdr Byteanzahl -- ) ( Source Destination Count -- )
   ands tos, r0    @ Bleibt nach AND etwas über ?
 
   .ifdef m0core
-  beq 1f
-  movs tos, #0
+  subs tos, #1
+  sbcs tos, tos
   mvns tos, tos
-1:bx lr
+  bx lr
   .else
   it ne
   movne tos, #-1 @ Bleibt etwas über, mache ein ordentliches true-Flag daraus.
   bx lr
   .endif
+
+  @------------------------------------------------------------------------------
+  @ Opcodable optimisations enter here.
+  ldr r2, =0x8800 @ ldrh r0, [r0, #0] Opcode
+  b.n bitfetch_opcoding
 
 @ -----------------------------------------------------------------------------
   Wortbirne Flag_inline|Flag_opcodierbar_Speicherschreiben, "cbis!" @ ( x 8-addr -- )  Set bits
@@ -469,7 +516,7 @@ move:  @ ( Quelladdr Zieladdr Byteanzahl -- ) ( Source Destination Count -- )
   bx lr
 
 @ -----------------------------------------------------------------------------
-  Wortbirne Flag_inline, "cbit@" @ ( x 8-addr -- Flag )  Check bits
+  Wortbirne Flag_inline|Flag_opcodierbar_Spezialfall, "cbit@" @ ( x 8-addr -- Flag )  Check bits
   @ Prüft, ob Bits in der Speicherstelle gesetzt sind
 @ -----------------------------------------------------------------------------
   ldm psp!, {r0}  @ Bitmaske holen
@@ -477,15 +524,20 @@ move:  @ ( Quelladdr Zieladdr Byteanzahl -- ) ( Source Destination Count -- )
   ands tos, r0    @ Bleibt nach AND etwas über ?
 
   .ifdef m0core
-  beq 1f
-  movs tos, #0
+  subs tos, #1
+  sbcs tos, tos
   mvns tos, tos
-1:bx lr
+  bx lr
   .else
   it ne
   movne tos, #-1 @ Bleibt etwas über, mache ein ordentliches true-Flag daraus.
   bx lr
   .endif
+
+  @------------------------------------------------------------------------------
+  @ Opcodable optimisations enter here.
+  ldr r2, =0x7800 @ ldrb r0, [r0, #0] Opcode
+  b.n bitfetch_opcoding
 
 @ -----------------------------------------------------------------------------
   Wortbirne Flag_inline|Flag_foldable_1, "cell+" @ ( x -- x+4 ) 

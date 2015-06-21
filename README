@@ -419,6 +419,8 @@ Single-Jugglers:
         r>              ( -- x ) (R: x -- )
         r@              ( -- x ) (R: x -- x )
         rdrop           (  --  ) (R: x -- )
+        rdepth          ( -- +n ) Gives number of return stack items.
+        rpick           ( i -- xi ) R: ( ... xi ... x0 -- ... xi ... x0 )
 
 Double-Jugglers:        They perform the same for double numbers.
 

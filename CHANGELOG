@@ -301,3 +301,12 @@
   - Bugfix: Double division
   - Some small optimisations in core
   - Assembler for Cortex M0 added
+
+18.10.2014, Matthias Koch, Mecrisp-Stellaris 2.0.4
+
+  - Optimisations for bit@ hbit@ cbit@
+  - Added rdepth rpick
+  - Forth code for blocks and trace
+  - Ported Ledcomm to Nucleo L152
+  - Contribution by John Huberts:
+      Nordic nRF51822 radio code

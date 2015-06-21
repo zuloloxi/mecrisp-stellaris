@@ -52,17 +52,6 @@
 @ Stack juggling
 
 @ -----------------------------------------------------------------------------
-  Wortbirne Flag_visible, "depth" @ ( -- Zahl der Elemente, die vorher auf den Datenstack waren )
-                                  @ ( -- Number of elements that have been on datastack before )
-@ -----------------------------------------------------------------------------
-  @ Berechne den Stackfüllstand
-  ldr r1, =datenstackanfang @ Anfang laden  Calculate stack fill gauge
-  subs r1, psp @ und aktuellen Stackpointer abziehen
-  lsrs r1, #2 @ Durch 4 teilen  Divide through 4 Bytes/element.
-  pushda r1
-  bx lr
-
-@ -----------------------------------------------------------------------------
   Wortbirne Flag_foldable_1|Flag_inline, "dup" @ ( x -- x x )
 @ -----------------------------------------------------------------------------
   dup
@@ -147,6 +136,27 @@ minusrot:
   bx lr
   .endif
 
+@ -----------------------------------------------------------------------------
+  Wortbirne Flag_visible, "depth" @ ( -- Zahl der Elemente, die vorher auf den Datenstack waren )
+                                  @ ( -- Number of elements that have been on datastack before )
+@ -----------------------------------------------------------------------------
+  @ Berechne den Stackfüllstand
+  ldr r1, =datenstackanfang @ Anfang laden  Calculate stack fill gauge
+  subs r1, psp @ und aktuellen Stackpointer abziehen
+  pushdatos
+  lsrs tos, r1, #2 @ Durch 4 teilen  Divide through 4 Bytes/element.
+  bx lr
+
+@ -----------------------------------------------------------------------------
+  Wortbirne Flag_visible, "rdepth"
+@ -----------------------------------------------------------------------------
+  pushdatos
+  mov tos, sp
+  ldr r1, =returnstackanfang @ Anfang laden  Calculate stack fill gauge
+  subs r1, tos @ und aktuellen Stackpointer abziehen
+  lsrs tos, r1, #2 @ Durch 4 teilen  Divide through 4 Bytes/element.
+  bx lr  
+
 @ Returnstack
 
 @------------------------------------------------------------------------------
@@ -174,4 +184,12 @@ minusrot:
   Wortbirne Flag_visible|Flag_inline, "rdrop" @ Entfernt das oberste Element des Returnstacks
 @------------------------------------------------------------------------------
   add sp, #4
+  bx lr
+
+@ -----------------------------------------------------------------------------
+  Wortbirne Flag_visible|Flag_inline, "rpick" @ ( u -- xu R: xu .. x1 x0 -- xu ... x1 x0 ) 
+@ -----------------------------------------------------------------------------
+  lsls tos, #2
+  add tos, sp
+  ldr tos, [tos]
   bx lr

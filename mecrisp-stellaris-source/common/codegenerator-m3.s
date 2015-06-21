@@ -481,7 +481,7 @@ callkomma:  @ Versucht einen möglichst kurzen Aufruf einzukompilieren.
 
 @ -----------------------------------------------------------------------------
   Wortbirne Flag_visible, "literal," @ ( x -- )
-literalkomma: @ Nur r3 muss erhalten bleiben  Save r3 !
+literalkomma: @ Save r1, r2 and r3 !
 @ -----------------------------------------------------------------------------
   push {r3, lr}
 
