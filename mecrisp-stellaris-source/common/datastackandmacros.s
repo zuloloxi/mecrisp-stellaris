@@ -271,7 +271,11 @@ psp .req r7
 
       .equ Dictionary_\@, .  @ Labels for a more readable assembler listing only
 
+   .ifdef flash16bytesblockwrite
+9:      .word FlashDictionaryAnfang + 0x0C @ Insert Link with offset because of alignment issues in LPC1114FN28.
+   .else
 9:      .word FlashDictionaryAnfang  @ Link einfügen  Insert Link
+   .endif
         .hword \Flags     @ Flags setzen, diesmal 2 Bytes ! Wir haben Platz und Ideen :-)  Flag field, 2 bytes, space for ideas left !
 
         .byte 8f - 7f     @ Länge des Namensfeldes berechnen  Calculate length of name field
@@ -304,7 +308,7 @@ psp .req r7
 .macro welcome Meldung
   bl dotgaensefuesschen 
         .byte 8f - 7f         @ Compute length of name field.
-7:      .ascii "Mecrisp-Stellaris 2.0.5"
+7:      .ascii "Mecrisp-Stellaris 2.0.6"
         .ascii "\Meldung\n"
 8:      .p2align 1
 .endm

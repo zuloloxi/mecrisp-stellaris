@@ -447,6 +447,23 @@ dodoes:
   ldr r1, =Einsprungpunkt @ Get the address the long call has to be inserted.
   ldr r1, [r1] @ r1 enthält jetzt die Codestartadresse der aktuellen Definition.
 
+  .ifdef flash16bytesblockwrite
+    @ Special case for LPC1114FN28 which has different alignment depending if compiling into Flash (16-even) or into RAM (4-even).
+
+    ldr r0, =Backlinkgrenze
+    cmp r3, r0
+    bhs.n dodoes_ram
+
+2:    movs r0, #15
+      ands r0, r1
+      cmp r0, #14
+      beq 1f
+        adds r1, #2
+        b 2b
+
+dodoes_ram:
+  .endif
+
   @ This is to align dictionary pointer to have does> target locations that are always 4-even
   movs r0, #2
   ands r0, r1
@@ -480,6 +497,33 @@ builds: @ Beginnt ein Defining-Wort.  Start a defining definition.
 @ -----------------------------------------------------------------------------
   push {lr}
   bl create       @ Neues Wort wird erzeugt
+
+  .ifdef flash16bytesblockwrite
+    @ It is necessary for LPC1114FN28 that Flash writes are aligned on 16.
+    @ So if we are compiling into Flash, we need to make sure that
+    @ the block the user might write to later is properly aligned.
+    ldr r0, =Dictionarypointer
+    ldr r1, [r0]
+
+    ldr r2, =Backlinkgrenze
+    cmp r1, r2
+    bhs.n builds_ram
+
+      @ See where we are. The sequence written for <builds does> is 18 Bytes long on M0.
+      @ So we need to advance to 16n + 14 so that the opcode sequence ends on a suitable border.
+
+2:    bl here
+      movs r0, #15
+      ands tos, r0
+      cmp tos, #14
+      drop
+      beq 1f
+        pushdaconst 0x0036  @ nop = movs tos, tos
+        bl hkomma
+        b 2b
+
+builds_ram:
+  .endif
 
   @ This is to align dictionary pointer to have does> target locations that are always 4-even
     bl here

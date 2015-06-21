@@ -583,6 +583,10 @@ quit:
   bl initflash
   .endif
 
+  .ifdef flash16bytesblockwrite
+  bl initflash
+  .endif
+
   @ Base und State setzen
 
   ldr r0, =base

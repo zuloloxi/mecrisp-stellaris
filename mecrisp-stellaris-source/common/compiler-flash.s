@@ -58,6 +58,10 @@ smudge:
 
     bl align4komma @ Align on 4 to make sure the last opcode is actually written to Flash and to fullfill ANS requirement.
 
+    .ifdef flash16bytesblockwrite
+      bl align16komma
+    .endif
+
     @ Brenne die gesammelten Flags:  Flash in the collected Flags:
     ldr r0, =FlashFlags
     ldr r0, [r0]
@@ -82,6 +86,10 @@ smudge:
 
     .ifdef universalflashinforth
     bl flushflash
+    .endif
+
+    .ifdef flash16bytesblockwrite
+      bl flushflash
     .endif
 
     pop {pc}
@@ -218,6 +226,29 @@ align4komma: @ Macht den Dictionarypointer auf 4 gerade
 
 1: @ Fertig.
   pop {pc}
+
+
+  .ifdef flash16bytesblockwrite @ Needed for LPC1114FN28...
+@ -----------------------------------------------------------------------------
+  Wortbirne Flag_visible, "align16," @ ( -- ) 
+align16komma: @ Macht den Dictionarypointer auf 16 gerade
+@ -----------------------------------------------------------------------------
+  push {lr}
+
+1:ldr r0, =Dictionarypointer
+  ldr r1, [r0] @ Hole den Dictionarypointer
+
+  movs r0, #15
+  ands r1, r0
+  beq 2f
+
+    pushdaconst 0
+    bl hkomma
+    b 1b    
+
+2:pop {pc}
+  .endif
+
 
   .ifdef charkommaavailable
 @ -----------------------------------------------------------------------------
@@ -522,7 +553,9 @@ create: @ Nimmt das nächste Token aus dem Puffer,
   .endif
 
   bl align4komma
+  .ifndef flash16bytesblockwrite
   bl here @ Das wird die neue Linkadresse
+  .endif
 
   @ ( Tokenadresse Länge Neue-Linkadresse )
 
@@ -541,6 +574,14 @@ create: @ Nimmt das nächste Token aus dem Puffer,
   ldr r0, =FlashFlags
   movs r1, #Flag_visible
   str r1, [r0]  @ Flags vorbereiten  Prepare Flags for collecting
+
+  .ifdef flash16bytesblockwrite
+    bl align16komma @ Vorrücken auf die nächste passende Schreibstelle
+    pushdaconst 12  @ Es muss ein kompletter 16-Byte-Block für das Linkfeld reserviert werden
+    bl allot        @ damit dies später noch nachträglich eingefügt werden kann.
+
+    bl here @ Das wird die neue Linkadresse
+  .endif
 
   pushdaconst 6 @ Lücke für die Flags und Link lassen  Leave space for Flags and Link - they are not known yet at this time.
   bl allot
@@ -583,6 +624,11 @@ create: @ Nimmt das nächste Token aus dem Puffer,
   @ -----------------------------------------------------------------------------
   @ Create for RAM
 create_ram:
+
+  .ifdef flash16bytesblockwrite
+    bl here @ Das wird die neue Linkadresse
+  .endif
+
   @ ( Tokenadresse Länge Neue-Linkadresse )
 
   @ Link setzen  Write Link

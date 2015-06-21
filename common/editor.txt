@@ -32,7 +32,7 @@ char i variable mode
 
 ( Buffer manipulation helpers )
 
-: where ( x y -- c-addr ) editor-buffer @ swap columns * + swap + ;
+: where ( x y -- c-addr ) columns * + editor-buffer @ + ;
 : where-cursor ( -- c-addr ) x @ y @ where ; \ Find buffer location for given x,y
 : eol ( -- c-addr ) columns 1- y @ where ;
 

@@ -181,3 +181,7 @@ Sucheflashpointer_Speicherbelegung_fertig:
   .ifdef universalflashinforth
   bl initflash
   .endif
+
+  .ifdef flash16bytesblockwrite
+  bl initflash
+  .endif

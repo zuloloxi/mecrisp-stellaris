@@ -50,8 +50,14 @@ ramallot Zahlenpuffer, Zahlenpufferlaenge+1 @ Reserviere mal großzügig 64 Byte
 .equ Maximaleeingabe,    200             @ Input buffer for an Address-Length string
 ramallot Eingabepuffer, Maximaleeingabe  @ Eingabepuffer wird einen Adresse-Länge String enthalten
 
+
+.ifdef flash16bytesblockwrite
+ramallot datenstackende, 512  @ Larger data stack because it will be used for buffering a 256 byte block
+ramallot datenstackanfang, 0  @ during Flash write on LPC1114FN28
+.else
 ramallot datenstackende, 256  @ Data stack
 ramallot datenstackanfang, 0
+.endif
 
 ramallot returnstackende, 256  @ Return stack
 ramallot returnstackanfang, 0
@@ -59,6 +65,14 @@ ramallot returnstackanfang, 0
 .ifdef emulated16bitflashwrites
   .equ Sammelstellen, 32 @ 32 * 6 = 192 Bytes.
   ramallot Sammeltabelle, Sammelstellen * 6 @ 16-Bit Flash write emulation collection buffer
+.endif
+
+.ifdef flash16bytesblockwrite
+  .equ Sammelstellen, 32 @ 32 * (16 + 4) = 640 Bytes
+  ramallot Sammeltabelle, Sammelstellen * 20 @ Buffer 16 blocks of 16 bytes each for ECC constrained Flash write
+
+  ramallot iap_command, 5*4
+  ramallot iap_reply, 4*4
 .endif
 
 .equ RamDictionaryAnfang, rampointer @ Ende der Puffer und Variablen ist Anfang des Ram-Dictionary.  Start of RAM dictionary
@@ -96,6 +110,11 @@ CoreDictionaryAnfang: @ Dictionary-Einsprungpunkt setzen
   .ltorg @ Mal wieder Konstanten schreiben
   .endif
 
+  .ifdef flash16bytesblockwrite
+  .include "../common/flash16bytesblockwrite.s"
+  .ltorg @ Mal wieder Konstanten schreiben
+  .endif
+  
   .include "../common/calculations.s"
   .include "terminal.s"
   .include "../common/query.s"

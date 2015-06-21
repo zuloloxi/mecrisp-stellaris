@@ -25,9 +25,8 @@
 @ -----------------------------------------------------------------------------
 
 .equ m0core, 1
-.equ universalflashinforth, 1
 
-@.equ emulated16bitflashwrites, 1
+.equ flash16bytesblockwrite, 1
 @ Not available:  .equ charkommaavailable, 1
 
 @ -----------------------------------------------------------------------------
@@ -44,7 +43,7 @@
 @ Konstanten für die Größe des Ram-Speichers
 
 .equ RamAnfang, 0x10000000 @ Start of RAM          Porting: Change this !
-.equ RamEnde,   0x10001000 @ End   of RAM.   4 kb. Porting: Change this !
+.equ RamEnde,   0x10001000 - 32 @ End   of RAM.   4 kb. Porting: Change this !
 
 @ Konstanten für die Größe und Aufteilung des Flash-Speichers
 

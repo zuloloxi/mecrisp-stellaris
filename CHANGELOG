@@ -321,3 +321,7 @@
   - Adapted Thumbulator emulator for LPC1114FN28 and 
       added Forth code to generate custom binaries for this target
   - Fixed a small flaw in disassemblers
+
+04.12.2014, Matthias Koch, Mecrisp-Stellaris 2.0.6
+
+  - Finally solved compilation into Flash for LPC1114FN28

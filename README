@@ -32,14 +32,12 @@ It runs out of the box on:
   - STM F4 Discovery             with STM32F407VGT6 
   - STM F429 Discovery           with STM32F429ZIT6
   - Freescale Freedom FRDM-KL25Z with KL25Z128VLK4
+  - Breadboard friendly, DIP packaged LPC1114FN28
 
 Contributions:
   - Teensy 3.1                   with MK20DX256VLH7
   - Chinese QF-LM4F232           with LM4F232H5QC
   - nRFgo Starter Kit            with nRF51822
-
-Experimental targets:
-  - Breadboard friendly, DIP packaged LPC1114FN28 (without Flash write access)
 
 http://mecrisp.sourceforge.net/
 
@@ -117,7 +115,7 @@ Hardware and configuration for LPC1114FN28 on breadboard:
   Flashing is possible with LPC21ISP:
   http://sourceforge.net/projects/lpc21isp/
 
-  lpc21isp mecrisp-stellaris-lpc1114fn28.hex /dev/ttyUSB0 9600 12000 
+  lpc21isp -wipe mecrisp-stellaris-lpc1114fn28.hex /dev/ttyUSB0 9600 12000
 
   On startup, this runs with internal RC oscillator at 12 MHz
   which is specified +-1% over whole temperature range.
@@ -1074,11 +1072,14 @@ Interrupts:
 ; Specials for LPC1114FN28:
 ;------------------------------------------------------------------------------
 
-        hflash!         ( u|n a-addr -- ) Writes halfword to flash (vectored)
+        initflash       ( -- ) Clear buffers
+        hflash!         ( u|n a-addr -- ) Writes halfword to flash (buffered)
+        flushflash      ( -- ) Flush flash buffers
+                                 needed if you comma in values after create
 
-        hook-initflash  ( -- a-addr ) Hooks for user defined Flash code
-        hook-hflash!
-        hook-flushflash
+        flash-khz       ( -- addr ) Variable with current core frequency in kHz
+        eraseflash      ( -- ) Erases everything. Clears Ram. Restarts Forth.
+        16flash!        ( x1 x2 x3 x4 addr -- ) Flash aligned 16 Bytes at once
 
         irq-i2c         ( -- a-addr ) Memory locations for IRQ-Hooks
         irq-uart
