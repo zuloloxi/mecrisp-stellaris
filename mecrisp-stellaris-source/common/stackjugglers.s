@@ -19,6 +19,38 @@
 @ Stackjongleure
 @ Stack jugglers
 
+@ Stack pointers
+
+@ -----------------------------------------------------------------------------
+  Wortbirne Flag_inline, "sp@" @ ( -- a-addr )
+@ -----------------------------------------------------------------------------
+  pushdatos
+  movs tos, psp
+  bx lr
+
+@ -----------------------------------------------------------------------------
+  Wortbirne Flag_inline, "sp!" @ ( a-addr -- )
+@ -----------------------------------------------------------------------------
+  movs psp, tos
+  ldm psp!, {tos}
+  bx lr
+
+@ -----------------------------------------------------------------------------
+  Wortbirne Flag_inline, "rp@" @ ( -- a-addr )
+@ -----------------------------------------------------------------------------
+  pushdatos
+  mov tos, sp
+  bx lr
+
+@ -----------------------------------------------------------------------------
+  Wortbirne Flag_inline, "rp!" @ ( a-addr -- )
+@ -----------------------------------------------------------------------------
+  mov sp, tos
+  ldm psp!, {tos}
+  bx lr
+
+@ Stack juggling
+
 @ -----------------------------------------------------------------------------
   Wortbirne Flag_visible, "depth" @ ( -- Zahl der Elemente, die vorher auf den Datenstack waren )
                                   @ ( -- Number of elements that have been on datastack before )

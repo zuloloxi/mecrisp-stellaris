@@ -16,53 +16,63 @@
 @    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 @
 
-@ Serial terminal code common to all STM parts which share same UART layout
-@ Define Terminal_USART_Base before use !
+@ Serial terminal code common to all TI parts which share same UART layout
+@ Define Terminal_UART_Base before use !
 
-  .equ Terminal_USART_SR,    Terminal_USART_Base + 0x00
-  .equ Terminal_USART_DR,    Terminal_USART_Base + 0x04
-  .equ Terminal_USART_BRR,   Terminal_USART_Base + 0x08
-  .equ Terminal_USART_CR1,   Terminal_USART_Base + 0x0c
-  .equ Terminal_USART_CR2,   Terminal_USART_Base + 0x10
-  .equ Terminal_USART_CR3,   Terminal_USART_Base + 0x14
-  .equ Terminal_USART_GTPR,  Terminal_USART_Base + 0x18
+.equ UART0_BASE, 0x4000C000
+.equ UARTDR,     Terminal_UART_Base + 0x000
+.equ UARTFR,     Terminal_UART_Base + 0x018
+.equ UARTIBRD,   Terminal_UART_Base + 0x024
+.equ UARTFBRD,   Terminal_UART_Base + 0x028
+.equ UARTLCRH,   Terminal_UART_Base + 0x02C
+.equ UARTCTL,    Terminal_UART_Base + 0x030
+.equ UARTCC,     Terminal_UART_Base + 0xFC8
 
-  .equ RXNE,  BIT5
-  .equ TC,    BIT6
-  .equ TXE,   BIT7
 
-  @ Baudrate settings: Bit 11-4 Divider, Bit 3-0 Fractional
-
-  @ Baud rate generation for 16 MHz:
-  @ 16000000 / (16 * 115200 ) = 1000000 / 115200 = 8.6805
-  @ 0.6805... * 16 = 10,8 rounds to 11 = B
-  @ $8B
-
-  @ For 8 MHz:
-
-  @  8000000 / (16 * 115200 ) = 4.3403
-  @  0.3403 * 16 = 5.4448
-  @  Divider 4, Fractional term 5 or 6 --> $45 or $46.
-
-  .macro Set_Terminal_USART_Baudrate
+.macro Set_Terminal_UART_Baudrate
   
-    @ Configure BRR by deviding the bus clock with the baud rate
+   @ UART-Einstellungen vornehmen
 
-    ldr r1, =Terminal_USART_BRR
-    @ ldr r0, =0x341  @  9600 bps
-    @ movs r0, #0xD0  @ 38400 bps
-    @ movs r0, #0x45  @ 115200 bps
-    movs r0, #0x46  @ 115200 bps, ein ganz kleines bisschen langsamer...
-    str r0, [r1]
+  movs r1, #0         @ UART stop
+  ldr  r0, =UARTCTL
+  str  r1, [r0]
 
-    @ Enable the USART, TX, and RX circuit
-    ldr r1, =Terminal_USART_CR1
-    ldr r0, =BIT13+BIT3+BIT2 @ USART_CR1_UE | USART_CR1_TE | USART_CR1_RE
-    str r0, [r1]
+  @ Baud rate generation:
+  @ 16000000 / (16 * 115200 ) = 1000000 / 115200 = 8.6805
+  @ 0.6805... * 64 = 43.5   ~ 44
+  @ use 8 and 44
 
-  .endm
- 
+  movs r1, #8
+  ldr  r0, =UARTIBRD
+  str r1, [r0]
+
+  movs r1, #44
+  ldr  r0, =UARTFBRD
+  str r1, [r0]
+
+  movs r1, #0x60|0x10  @ 8N1, enable FIFOs !
+  ldr  r0, =UARTLCRH
+  str r1, [r0]
+
+  movs r1, #5          @ Choose PIOSC as source
+  ldr  r0, =UARTCC
+  str r1, [r0]
+
+  movs    r1, #0
+  ldr     r0, =UARTFR
+  str r1, [r0]
+
+  movw r1, #0x301      @ UART start
+  ldr  r0, =UARTCTL
+  str  r1, [r0]
+
+.endm
+
 .include "../common/terminalhooks.s"
+
+@ Werte für den UARTFR-Register
+.equ RXFE, 0x10 @ Receive  FIFO empty
+.equ TXFF, 0x20 @ Transmit FIFO full
 
 @ -----------------------------------------------------------------------------
   Wortbirne Flag_visible, "serial-emit"
@@ -75,8 +85,8 @@ serial_emit: @ ( c -- ) Emit one character
    drop
    beq 1b
 
-   ldr r2, =Terminal_USART_DR
-   strb tos, [r2]         @ Output the character
+   ldr r0, =UARTDR  @ Abschicken
+   str tos, [r0]
    drop
 
    pop {pc}
@@ -92,10 +102,12 @@ serial_key: @ ( -- c ) Receive one character
    drop
    beq 1b
 
-   pushdatos
-   ldr r2, =Terminal_USART_DR
-   ldrb tos, [r2]         @ Fetch the character
+   ldr r0, =UARTDR    @ Einkommendes Zeichen abholen
+   stmdb psp!, {tos}  @ Platz auf dem Datenstack schaffen
 
+   ldr tos, [r0]      @ Register lesen
+   uxtb tos, tos      @ 8 Bits davon nehmen, Rest mit Nullen auffüllen.
+  
    pop {pc}
 
 @ -----------------------------------------------------------------------------
@@ -106,11 +118,10 @@ serial_qemit:  @ ( -- ? ) Ready to send a character ?
    bl pause
 
    pushdaconst 0
-   ldr r0, =Terminal_USART_SR
-   ldr r1, [r0]     @ Fetch status
-   movs r0, #TXE
-   ands r1, r0
-   beq 1f
+   ldr r0, =UARTFR
+   ldr r1, [r0]
+   ands r1, #TXFF
+   bne 1f
      mvns tos, tos
 1: pop {pc}
 
@@ -122,10 +133,9 @@ serial_qkey:  @ ( -- ? ) Is there a key press ?
    bl pause
 
    pushdaconst 0
-   ldr r0, =Terminal_USART_SR
-   ldr r1, [r0]     @ Fetch status
-   movs r0, #RXNE
-   ands r1, r0
-   beq 1f
+   ldr r0, =UARTFR
+   ldr r1, [r0]
+   ands r1, #RXFE
+   bne 1f
      mvns tos, tos
 1: pop {pc}

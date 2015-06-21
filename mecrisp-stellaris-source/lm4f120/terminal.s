@@ -27,20 +27,12 @@
 .equ GPIOAFSEL,  0x40004420
 .equ GPIODEN,    0x4000451C
 
-.equ UART0_BASE, 0x4000C000
-.equ UARTDR,     0x4000C000
-.equ UARTFR,     0x4000C018
-.equ UARTIBRD,   0x4000C024
-.equ UARTFBRD,   0x4000C028
-.equ UARTLCRH,   0x4000C02C
-.equ UARTCTL,    0x4000C030
-.equ UARTCC,     0x4000CFC8
+.equ Terminal_UART_Base, 0x4000C000 @ UART 0
+.include "../common/ti-terminal.s"
 
 @ -----------------------------------------------------------------------------
 uart_init: @ ( -- )
 @ -----------------------------------------------------------------------------
-
-  @ Allgemeine Systemeinstellungen
 
   movs r1, #1         @ UART0 aktivieren
   ldr  r0, =RCGCUART
@@ -58,100 +50,9 @@ uart_init: @ ( -- )
   ldr  r0, =GPIODEN
   str  r1, [r0]
 
-
-  @ UART-Einstellungen vornehmen
-
-  movs r1, #0         @ UART anhalten
-  ldr  r0, =UARTCTL
-  str  r1, [r0]
-
-  @ Baud rate generation:
-  @ 16000000 / (16 * 115200 ) = 1000000 / 115200 = 8.6805
-  @ 0.6805... * 64 = 43.5   ~ 44
-  @ use 8 and 44
-
-  movs r1, #8
-  ldr  r0, =UARTIBRD
-  str r1, [r0]
-
-  movs r1, #44
-  ldr  r0, =UARTFBRD
-  str r1, [r0]
-
-  movs r1, #0x60|0x10  @ 8N1, FIFOs an !
-  ldr  r0, =UARTLCRH
-  str r1, [r0]
-
-  movs r1, #5        @ PIOSC wählen
-  ldr  r0, =UARTCC
-  str r1, [r0]
-
-  movs    r1, #0
-  ldr     r0, =UARTFR
-  str r1, [r0]
-
-  movw r1, #0x301     @ UART starten
-  ldr  r0, =UARTCTL
-  str  r1, [r0]
+  Set_Terminal_UART_Baudrate
 
   bx lr
 
-
-@ Werte für den UARTFR-Register
-.equ RXFE, 0x10 @ Receive  FIFO empty
-.equ TXFF, 0x20 @ Transmit FIFO full
-
-@ -----------------------------------------------------------------------------
-  Wortbirne Flag_visible, "emit"
-emit: @ ( c -- ) Sendet Wert in r0
-@ -----------------------------------------------------------------------------
-   push {r0, r1}
-
-   ldr r0, =UARTFR
-1: ldr r1, [r0]     @ Warte solange der Transmit-FIFO voll ist.
-   ands r1, #TXFF
-   bne 1b
-
-   ldr r0, =UARTDR  @ Abschicken
-   popda r1
-   str r1, [r0]
-
-   pop {r0, r1}
-   bx lr
-
-@ -----------------------------------------------------------------------------
-  Wortbirne Flag_visible, "key"
-key: @ ( -- c ) Empfängt Wert in r0
-@ -----------------------------------------------------------------------------
-   push {r0, r1}
-
-   ldr r0, =UARTFR
-1: ldr r1, [r0]     @ Warte solange der Receive-FIFO leer ist.
-   ands r1, #RXFE
-   bne 1b
-
-   ldr r0, =UARTDR    @ Einkommendes Zeichen abholen
-   stmdb psp!, {tos}  @ Platz auf dem Datenstack schaffen
-
-   ldr tos, [r0]      @ Register lesen
-   uxtb tos, tos      @ 8 Bits davon nehmen, Rest mit Nullen auffüllen.
-  
-   pop {r0, r1}
-   bx lr
-
-@ -----------------------------------------------------------------------------
-  Wortbirne Flag_visible, "?key"
-  @ ( -- ? ) Ist eine Taste gedrückt ?
-@ -----------------------------------------------------------------------------
-   ldr r0, =UARTFR
-   ldr r1, [r0]     @ Warte solange der Receive-FIFO leer ist.
-   ands r1, #RXFE
-   bne 1f
-     pushdaconst -1
-     bx lr
-
-1: pushdaconst 0
-   bx lr
-
-
   .ltorg @ Hier werden viele spezielle Hardwarestellenkonstanten gebraucht, schreibe sie gleich !
+         @ Write the many special hardware locations now !

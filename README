@@ -270,9 +270,23 @@ View it with fixed-width font !
 ; Terminal-IO
 ;------------------------------------------------------------------------------
 
+        ?emit           ( -- Flag ) Ready to send a character ?
         ?key            ( -- Flag ) Checks if a key is waiting
         key             ( -- Char ) Waits for and fetches the pressed key
         emit            ( Char -- ) Emits a character.
+
+        hook-?emit      ( -- a-addr ) Hooks for redirecting
+        hook-?key       ( -- a-addr )   terminal IO
+        hook-key        ( -- a-addr )     on the fly
+        hook-emit       ( -- a-addr ) 
+
+        serial-?emit    ( -- Flag )  Serial interface
+        serial-?key     ( -- Flag )    terminal routines
+        serial-key      ( -- Char )      as default communications
+        serial-emit     ( Char -- ) 
+
+        hook-pause      ( -- a-addr ) Hook for a multitasker
+        pause           ( -- )        Task switch, none for default
 
 ;------------------------------------------------------------------------------
 ; Stack Jugglers  (exactly ANS, some logical extensions)
@@ -313,6 +327,13 @@ Double-Jugglers:        They perform the same for double numbers.
         2r>             ( -- x1 x2 ) (R: x1 x2 -- )
         2r@             ( -- x1 x2 ) (R: x1 x2 -- x1 x2 )
         2rdrop          ( -- )       (R: x1 x2 -- )
+
+Stack pointers:
+
+        sp@             ( -- a-addr )  Fetch  data stack pointer
+        sp!             ( a-addr -- )  Store  data stack pointer
+        rp@             ( -- a-addr )  Fetch return stack pointer
+        rp!             ( a-addr -- )  Store return stack pointer
 
 ;------------------------------------------------------------------------------
 ; Logic  (exactly ANS, some logical extensions)
@@ -577,6 +598,7 @@ Deep insights:
 
         interpret       ( any -- any ) Execute, compile, fold, optimize...
         quit            ( many -- ) (R: many -- ) Resets Stacks
+        hook-quit       ( -- a-addr ) Hook for changing the inner quit loop
 
 ;------------------------------------------------------------------------------
 ; Dictionary expansion  (speciality!)
@@ -764,6 +786,7 @@ limit index   do ... [one or more leave(s)] ... loop
 ;------------------------------------------------------------------------------
 ; Common Hardware access
 ;------------------------------------------------------------------------------
+
         dint            ( -- ) Disables Interrupts
         eint            ( -- ) Enables  Interrupts
         nop             ( -- ) No Operation. Hook for unused IRQs !
@@ -811,16 +834,6 @@ Interrupts:
 ;------------------------------------------------------------------------------
 ; Specials for TM4C1294:
 ;------------------------------------------------------------------------------
-
-Communication:
-
-        hook-?key       ( -- a-addr ) Hooks for redirecting
-        hook-key        ( -- a-addr )   terminal IO
-        hook-emit       ( -- a-addr )     on the fly
-
-        serial-?key     ( -- Flag ) Serial interface
-        serial-key      ( -- Char )   terminal routines
-        serial-emit     ( Char -- )     as default communications
 
 Flash:
         eraseflash      ( -- ) Erases everything. Clears Ram. Restarts Forth.

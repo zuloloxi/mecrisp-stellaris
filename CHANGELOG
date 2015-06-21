@@ -158,3 +158,11 @@
   - Variables and <builds does> are now 4-aligned on M3/M4, too
   - Added buffer:
   - Hooks for terminal redirection on TM4C1294
+
+08.05.2013, Matthias Koch, Mecrisp-Stellaris 1.1.3
+
+  - Added sp@ sp! rp@ rp!
+  - Added hook for inner quit loop
+  - ?emit and hooks for terminal redirection on all targets
+  - Serial terminal code calls vectorized pause for multitasking
+  - Tidyup and factoring of more common code

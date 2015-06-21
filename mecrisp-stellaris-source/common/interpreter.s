@@ -505,6 +505,15 @@ konstantenschreiben: @ Special internal entry point with register dependencies.
   pop {pc}
 
 
+@------------------------------------------------------------------------------
+  Wortbirne Flag_visible|Flag_variable, "hook-quit" @ ( -- addr )
+  CoreVariable hook_quit
+@------------------------------------------------------------------------------  
+  pushdatos
+  ldr tos, =hook_quit
+  bx lr
+  .word quit_innenschleife  @ Simple loop for default
+
 @ -----------------------------------------------------------------------------
   Wortbirne Flag_visible, "quit" @ ( -- )
 quit:
@@ -539,6 +548,11 @@ quit:
   ldr r0, =konstantenfaltungszeiger
   movs r1, #0    @ Clear constant folding pointer
   str r1, [r0]
+
+quit_intern:
+  ldr r0, =hook_quit
+  ldr r0, [r0]
+  mov pc, r0
 
 quit_innenschleife:  @ Main loop of Forth system.
   bl query

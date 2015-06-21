@@ -70,52 +70,11 @@ Reset: @ Einsprung zu Beginn
    @ Initialisations for Terminal hardware, without Datastack.
    bl uart_init
 
-Reset_Inneneinsprung:
-   @ Return stack pointer already set up. Time to set data stack pointer !
-   @ Normaler Stackpointer bereits gesetzt. Setze den Datenstackpointer:
-   ldr psp, =datenstackanfang
-
-   @ TOS setzen, um Pufferunterläufe gut erkennen zu können
-   @ TOS magic number to see spurious stack underflows in .s
-   @ ldr tos, =0xAFFEBEEF
-   movs tos, #42
-
-   @ Vorbereitungen für die Flash-Pointer
+Restart:
    @ Catch the pointers for Flash dictionary
    .include "../common/catchflashpointers.s"
 
    writeln "Mecrisp-Stellaris 1.1 for LM4F232 by Matthias Koch"
 
-   @ Genauso wie in quit. Hier nochmal, damit quit nicht nach dem Init-Einsprung nochmal tätig wird.
-   @ Exactly like the initialisations in quit. Here again because quit should not be executed after running "init".
-   ldr r0, =base
-   movs r1, #10
-   str r1, [r0]
-
-   ldr r0, =state
-   movs r1, #0
-   str r1, [r0]
-
-   ldr r0, =konstantenfaltungszeiger
-   movs r1, #0
-   str r1, [r0]
-
-   @ Suche nach der init-Definition:
-   @ Search for current init definition in dictionary:
-   ldr r0, =init_name
-   pushda r0
-   bl find
-   drop @ Flags brauche ich nicht No need for flags
-   cmp tos, #0
-   beq 1f
-     @ Gefunden ! Found !
-     bl execute
-     b.n quit_innenschleife
-1:
-   drop @ Die 0-Adresse von find. Wird hier heruntergeworfen, damit der Startwert AFFEBEEF erhalten bleibt !
-   b.n quit @ Drop 0-address of find to keep magic TOS value intact.
-
-init_name: .byte 4, 105, 110, 105, 116, 0 @ "init"
-
-.ltorg @ Ein letztes Mal Konstanten schreiben
-
+   @ Ready to fly !
+   .include "../common/boot.s"

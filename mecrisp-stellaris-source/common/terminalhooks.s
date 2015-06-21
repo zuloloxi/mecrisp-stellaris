@@ -37,6 +37,15 @@
   .word serial_key  @ Serial communication for default
 
 @------------------------------------------------------------------------------
+  Wortbirne Flag_visible|Flag_variable, "hook-?emit" @ ( -- addr )
+  CoreVariable hook_qemit
+@------------------------------------------------------------------------------  
+  pushdatos
+  ldr tos, =hook_qemit
+  bx lr
+  .word serial_qemit  @ Serial communication for default
+
+@------------------------------------------------------------------------------
   Wortbirne Flag_visible|Flag_variable, "hook-?key" @ ( -- addr )
   CoreVariable hook_qkey
 @------------------------------------------------------------------------------  
@@ -45,6 +54,14 @@
   bx lr
   .word serial_qkey  @ Serial communication for default
 
+@------------------------------------------------------------------------------
+  Wortbirne Flag_visible|Flag_variable, "hook-pause" @ ( -- addr )
+  CoreVariable hook_pause
+@------------------------------------------------------------------------------  
+  pushdatos
+  ldr tos, =hook_pause
+  bx lr
+  .word nop_vektor  @ No Pause defined for default
 
 @------------------------------------------------------------------------------
   Wortbirne Flag_visible, "emit" @ ( c -- )
@@ -65,10 +82,27 @@ key:
   pop {r0, r1, r2, r3, pc}
 
 @------------------------------------------------------------------------------
+  Wortbirne Flag_visible, "?emit" @ ( -- ? )
+@------------------------------------------------------------------------------  
+  push {lr} @ Not used in core, no need to save registers
+  ldr r0, =hook_qemit
+  bl hook_intern
+  pop {pc}
+
+@------------------------------------------------------------------------------
   Wortbirne Flag_visible, "?key" @ ( -- ? )
 @------------------------------------------------------------------------------  
   push {lr} @ Not used in core, no need to save registers
   ldr r0, =hook_qkey
+  bl hook_intern
+  pop {pc}
+
+@------------------------------------------------------------------------------
+  Wortbirne Flag_visible, "pause" @ ( -- ? )
+pause:
+@------------------------------------------------------------------------------  
+  push {lr} @ Not directly used in core, no need to save registers
+  ldr r0, =hook_pause
   bl hook_intern
   pop {pc}
 

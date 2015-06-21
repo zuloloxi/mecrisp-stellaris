@@ -236,7 +236,7 @@ eraseflash_intern:
         cmp r0, r1
         bne 1b
   writeln "Finished. Reset !"
-  bl Reset
+  bl Restart
 
 @ -----------------------------------------------------------------------------
   Wortbirne Flag_visible, "eraseflashfrom" @ ( Addr -- )

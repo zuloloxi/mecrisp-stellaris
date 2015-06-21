@@ -214,7 +214,6 @@ flashpageerase:
 @ -----------------------------------------------------------------------------
         ldr r0, =FlashDictionaryAnfang
 eraseflash_intern:
-@  push {lr} Unnötig, am Ende ist Reset...
         ldr r1, =FlashDictionaryEnde
         movw r2, #0xFFFF
 
@@ -231,8 +230,7 @@ eraseflash_intern:
         cmp r0, r1
         bne 1b
   writeln "Finished. Reset !"
-@  pop {lr}
-  b Reset
+  b Restart
 
 @ -----------------------------------------------------------------------------
   Wortbirne Flag_visible, "eraseflashfrom" @ ( Addr -- )

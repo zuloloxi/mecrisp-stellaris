@@ -23,6 +23,20 @@
 @ Initialises pointers and variables for flash dictionary after Reset.
 @ This runs one time after Reset, no registers are saved here.
 
+   @ Hardware sets return stack pointer on startup from vector table.
+   @ Set Return stack pointer here (again) just in case this might be a software re-entry.
+   ldr r0, =returnstackanfang
+   mov sp, r0
+
+   @ Return stack pointer already set up. Time to set data stack pointer !
+   @ Normaler Stackpointer bereits gesetzt. Setze den Datenstackpointer:
+   ldr psp, =datenstackanfang
+
+   @ TOS setzen, um Pufferunterläufe gut erkennen zu können
+   @ TOS magic number to see spurious stack underflows in .s
+   @ ldr tos, =0xAFFEBEEF
+   movs tos, #42
+
   @ Suche nun im Flash nach Anfang und Ende.
   @ Short: Search for begin and end in Flash.
 

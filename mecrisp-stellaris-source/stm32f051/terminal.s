@@ -99,50 +99,65 @@ uart_init:
 
   bx lr
 
-@ -----------------------------------------------------------------------------
-  Wortbirne Flag_visible, "emit"
-emit: @ ( c -- ) Emit one character
-@ -----------------------------------------------------------------------------
-   push {r0, r1, r2}
+.include "../common/terminalhooks.s"
 
-   ldr r2, =USART1_ISR
+@ -----------------------------------------------------------------------------
+  Wortbirne Flag_visible, "serial-emit"
+serial_emit: @ ( c -- ) Emit one character
+@ -----------------------------------------------------------------------------
+   push {lr}
 
-   movs r0, #TXE
-1: ldr r1, [r2]           @ Load USART status register
-   ands r1, r0            @ Transmit buffer empty?
-   beq 1b                 @ loop until buffer is empty
+1: bl serial_qemit
+   cmp tos, #0
+   drop
+   beq 1b
 
    ldr r2, =USART1_TDR
    strb tos, [r2]         @ Output the character
    drop
 
-   pop {r0, r1, r2}
-   bx lr
+   pop {pc}
 
 @ -----------------------------------------------------------------------------
-  Wortbirne Flag_visible, "key"
-key: @ ( -- c ) Receive one character
+  Wortbirne Flag_visible, "serial-key"
+serial_key: @ ( -- c ) Receive one character
 @ -----------------------------------------------------------------------------
-   push {r0, r1, r2}
+   push {lr}
 
-   ldr r2, =USART1_ISR
-
-   movs r0, #RXNE        
-1: ldr r1, [r2]           @ Load USART status register
-   ands r1, r0            @ Receive buffer not empty ?
-   beq 1b                 @ Loop until a character arrives
+1: bl serial_qkey
+   cmp tos, #0
+   drop
+   beq 1b
 
    pushdatos
    ldr r2, =USART1_RDR
    ldrb tos, [r2]         @ Fetch the character
 
-   pop {r0, r1, r2}
-   bx lr
+   pop {pc}
 
 @ -----------------------------------------------------------------------------
-  Wortbirne Flag_visible, "?key"
-  @ ( -- ? ) Is there a key press ?
+  Wortbirne Flag_visible, "serial-?emit"
+serial_qemit:  @ ( -- ? ) Ready to send a character ?
 @ -----------------------------------------------------------------------------
+   push {lr}
+   bl pause
+
+   pushdaconst 0  @ False Flag
+   ldr r0, =USART1_ISR
+   ldr r1, [r0]     @ Fetch status
+   movs r0, #TXE
+   ands r1, r0
+   beq 1f
+     mvns tos, tos @ True Flag
+1: pop {pc}
+
+@ -----------------------------------------------------------------------------
+  Wortbirne Flag_visible, "serial-?key"
+serial_qkey:  @ ( -- ? ) Is there a key press ?
+@ -----------------------------------------------------------------------------
+   push {lr}
+   bl pause
+
    pushdaconst 0  @ False Flag
    ldr r0, =USART1_ISR
    ldr r1, [r0]     @ Fetch status
@@ -150,7 +165,6 @@ key: @ ( -- c ) Receive one character
    ands r1, r0
    beq 1f
      mvns tos, tos @ True Flag
-1: bx lr
-
+1: pop {pc}
 
   .ltorg @ Hier werden viele spezielle Hardwarestellenkonstanten gebraucht, schreibe sie gleich !

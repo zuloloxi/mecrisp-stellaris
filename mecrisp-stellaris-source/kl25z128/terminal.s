@@ -150,48 +150,38 @@ uart_init: @ ( -- )
   bx lr
 
 
-@ Werte für den UART0_S1-Register
+.include "../common/terminalhooks.s"
 
+@ Werte für den UART0_S1-Register
 .equ UART_S1_RDRF_MASK, 0x20  @ Receive  Data Register Full
 .equ UART_S1_TDRE_MASK, 0x80  @ Transmit Data Register Empty
 
 @ -----------------------------------------------------------------------------
-  Wortbirne Flag_visible, "emit"
-emit: @ ( c -- ) Sendet Wert in r0
+  Wortbirne Flag_visible, "serial-emit"
+serial_emit: @ ( c -- ) Emit one character
 @ -----------------------------------------------------------------------------
-   push {r0, r1, r2}
+   push {lr}
 
-   ldr  r0, =UART0_S1
-   movs r1, #UART_S1_OR_MASK
-   strb r1, [r0]
-
-   movs r2, #UART_S1_TDRE_MASK
-
-1: ldrb r1, [r0]     @ Warte solange bis Transmit-Register leer ist.
-   ands r1, r2
+1: bl serial_qemit
+   cmp tos, #0
+   drop
    beq 1b
 
    ldr r0, =UART0_D  @ Abschicken
-   popda r1
-   strb r1, [r0]
+   strb tos, [r0]
+   drop
 
-   pop {r0, r1, r2}
-   bx lr
+   pop {pc}
 
 @ -----------------------------------------------------------------------------
-  Wortbirne Flag_visible, "key"
-key: @ ( -- c ) Empfängt Wert in r0
+  Wortbirne Flag_visible, "serial-key"
+serial_key: @ ( -- c ) Receive one character
 @ -----------------------------------------------------------------------------
-   push {r0, r1, r2}
+   push {lr}
 
-   ldr r0, =UART0_S1
-   movs r1, #UART_S1_OR_MASK
-   strb r1, [r0]
-
-   movs r2, #UART_S1_RDRF_MASK
-
-1: ldrb r1, [r0]     @ Warte solange bis Receive-Register voll ist.
-   ands r1, r2
+1: bl serial_qkey
+   cmp tos, #0
+   drop
    beq 1b
 
    ldr r0, =UART0_D   @ Einkommendes Zeichen abholen
@@ -200,13 +190,43 @@ key: @ ( -- c ) Empfängt Wert in r0
    ldrb tos, [r0]     @ Register lesen
    uxtb tos, tos      @ 8 Bits davon nehmen, Rest mit Nullen auffüllen.
   
-   pop {r0, r1, r2}
-   bx lr
+   pop {pc}
 
 @ -----------------------------------------------------------------------------
-  Wortbirne Flag_visible, "?key"
-  @ ( -- ? ) Ist eine Taste gedrückt ?
+  Wortbirne Flag_visible, "serial-?emit"
+serial_qemit:  @ ( -- ? ) Ready to send a character ?
 @ -----------------------------------------------------------------------------
+   push {lr}
+   bl pause
+
+   @ Clear receiver overrun flag as it could stall communication completely.
+   ldr  r0, =UART0_S1
+   movs r1, #UART_S1_OR_MASK
+   strb r1, [r0]
+
+   pushdaconst 0
+
+   ldr r0, =UART0_S1
+   movs r2, #UART_S1_TDRE_MASK
+
+   ldrb r1, [r0]     @ Warte solange bis Receive-Register voll ist.
+   ands r1, r2
+   beq 1f
+     mvns tos, tos
+1: pop {pc}
+
+@ -----------------------------------------------------------------------------
+  Wortbirne Flag_visible, "serial-?key"
+serial_qkey:  @ ( -- ? ) Is there a key press ?
+@ -----------------------------------------------------------------------------
+   push {lr}
+   bl pause
+
+   @ Clear receiver overrun flag as it could stall communication completely.
+   ldr  r0, =UART0_S1
+   movs r1, #UART_S1_OR_MASK
+   strb r1, [r0]
+
    pushdaconst 0
 
    ldr r0, =UART0_S1
@@ -216,6 +236,6 @@ key: @ ( -- c ) Empfängt Wert in r0
    ands r1, r2
    beq 1f
      mvns tos, tos
-1: bx lr
+1: pop {pc}
 
   .ltorg @ Hier werden viele spezielle Hardwarestellenkonstanten gebraucht, schreibe sie gleich !
