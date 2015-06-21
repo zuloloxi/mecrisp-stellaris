@@ -107,7 +107,7 @@
 : reg.    ( Opcode Position -- Opcode ) over swap rshift  $7 and register. ;
 : reg16.  ( Opcode Position -- Opcode ) over swap rshift  $F and register. ;
 : reg16split. ( Opcode -- Opcode ) dup $0007 and over 4 rshift $0008 and or register. ;
-: registerlist. ( Opcode -- Opcode ) 7 0 do dup 1 i lshift and if i register. space then loop ;
+: registerlist. ( Opcode -- Opcode ) 8 0 do dup 1 i lshift and if i register. space then loop ;
 
 : imm3. ( Opcode Position -- Opcode ) over swap rshift  $7  and const. ;
 : imm5. ( Opcode Position -- Opcode ) over swap rshift  $1F and const. ;

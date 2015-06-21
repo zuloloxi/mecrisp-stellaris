@@ -26,17 +26,9 @@ rlooplimit .req r5
   Wortbirne Flag_inline, "k" @ Kopiert den drittobersten Schleifenindex  Third loop index
 @------------------------------------------------------------------------------
   @ Returnstack ( Limit Index Limit Index )
-  .ifdef m0core
   pushdatos
-  mov tos, sp
-  subs tos, #8
-  ldr tos, [tos]
+  ldr tos, [sp, #8]
   bx lr
-  .else
-  pushdatos
-  ldr tos, [sp, #-8]
-  bx lr
-  .endif
 
 @------------------------------------------------------------------------------
   Wortbirne Flag_inline, "j" @ Kopiert den zweitobersten Schleifenindex  Second loop index
