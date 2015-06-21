@@ -179,32 +179,29 @@ holechar: @ ( -- Zeichen )
 dotgaensefuesschen: @ Gibt den inline folgenden String aus und überspringt ihn
                     @ Print the string following inline and skip it
 @ -----------------------------------------------------------------------------
-  push {r1, r2, r3}
+  push {r1, r3}  @ Messages are used everywhere, save the registers !
 
-  mov r2, lr  @ In lr ist nun die Stringadresse.  LR contains string address
-  subs r2, #1 @ Die Stringanfangsadresse für type - PC ist ungerade im Thumb-Modus ! One less because of Thumb-instructionset marker bit
-  pushda r2   @ Put prepared string address to data stack.
+  pushdatos
+  mov tos, lr    @ In lr ist nun die Stringadresse.  LR contains string address
+  subs tos, #1   @ Die Stringanfangsadresse für type - PC ist ungerade im Thumb-Modus ! One less because of Thumb-instruction set marker bit
+  ldrb r3, [tos] @ Länge des Strings holen  Fetch length of string
 
-        @ Skip the string.
+  @ Skip the string.
 
-        .ifdef m0core
-        ldrb r3, [r2]   @ Länge des Strings holen  Fetch length of string
-        movs r1, #1
-        adds r3, #1     @ Plus 1 Byte für die Länge  One more for length byte
-        ands r1, r3     @ Wenn es ungerade ist, noch einen mehr:  Maybe one more for aligning
-        adds r3, r1
-        mov r1, lr
-        adds r1, r3
-        mov lr, r1
-        .else
-        ldrb r3, [r2]   @ Länge des Strings holen  Fetch length of string
-        adds r3, #1     @ Plus 1 Byte für die Länge  One more for length byte
-        ands r1, r3, #1 @ Wenn es ungerade ist, noch einen mehr:  Maybe one more for aligning
-        adds r3, r1
-        adds lr, r3
-        .endif
+  movs r1, #1
+  adds r3, #1     @ Plus 1 Byte für die Länge  One more for length byte
+  ands r1, r3     @ Wenn es ungerade ist, noch einen mehr:  Maybe one more for aligning
+  adds r3, r1
 
-  pop {r1, r2, r3}
+  .ifdef m0core
+    mov r1, lr
+    adds r1, r3
+    mov lr, r1
+  .else
+    adds lr, r3
+  .endif
+
+  pop {r1, r3}
   b.n type   @ Print it !
 
 @ -----------------------------------------------------------------------------
@@ -217,30 +214,26 @@ dotgaensefuesschen: @ Gibt den inline folgenden String aus und überspringt ihn
 dotcfuesschen: @ Legt den inline folgenden String auf den Stack und überspringt ihn
               @ Put address of the string following inline on datastack and skip string.
 @ -----------------------------------------------------------------------------
-  push {r1, r2, r3}
+  pushdatos
+  mov tos, lr    @ In lr ist nun die Stringadresse.  LR contains string address
+  subs tos, #1   @ Die Stringanfangsadresse für type - PC ist ungerade im Thumb-Modus ! One less because of Thumb-instruction set marker bit
+  ldrb r3, [tos] @ Länge des Strings holen  Fetch length of string
 
-  mov r2, lr
-  subs r2, #1
-  pushda r2
+  @ Skip the string.
 
-        .ifdef m0core
-        ldrb r3, [r2]   @ Länge des Strings holen  Fetch length of string
-        movs r1, #1
-        adds r3, #1     @ Plus 1 Byte für die Länge  One more for length byte
-        ands r1, r3     @ Wenn es ungerade ist, noch einen mehr:  Maybe one more for aligning
-        adds r3, r1
-        mov r1, lr
-        adds r1, r3
-        mov lr, r1
-        .else
-        ldrb r3, [r2]   @ Länge des Strings holen  Fetch length of string
-        adds r3, #1     @ Plus 1 Byte für die Länge  One more for length byte
-        ands r1, r3, #1 @ Wenn es ungerade ist, noch einen mehr:  Maybe one more for aligning
-        adds r3, r1
-        adds lr, r3
-        .endif
+  movs r1, #1
+  adds r3, #1     @ Plus 1 Byte für die Länge  One more for length byte
+  ands r1, r3     @ Wenn es ungerade ist, noch einen mehr:  Maybe one more for aligning
+  adds r3, r1
 
-  pop {r1, r2, r3}
+  .ifdef m0core
+    mov r1, lr
+    adds r1, r3
+    mov lr, r1
+  .else
+    adds lr, r3
+  .endif
+
   bx lr  @ Leave string address on datastack.
 
 @ -----------------------------------------------------------------------------
@@ -253,34 +246,28 @@ dotcfuesschen: @ Legt den inline folgenden String auf den Stack und überspringt
 dotsfuesschen: @ Legt den inline folgenden String auf den Stack und überspringt ihn
               @ Put address of the string following inline on datastack and skip string.
 @ -----------------------------------------------------------------------------
-  push {r1, r2, r3}
+  pushdatos
+  mov tos, lr    @ In lr ist nun die Stringadresse.  LR contains string address
+  dup
+  subs tos, #1   @ Die Stringanfangsadresse für type - PC ist ungerade im Thumb-Modus ! One less because of Thumb-instruction set marker bit
+  ldrb tos, [tos] @ Länge des Strings holen  Fetch length of string
 
-  mov r2, lr
-  pushda r2
-  subs r2, #1
+  @ Skip the string.
 
-        .ifdef m0core
-        ldrb r3, [r2]   @ Länge des Strings holen  Fetch length of string
-        pushda r3
-        movs r1, #1
-        adds r3, #1     @ Plus 1 Byte für die Länge  One more for length byte
-        ands r1, r3     @ Wenn es ungerade ist, noch einen mehr:  Maybe one more for aligning
-        adds r3, r1
-        mov r1, lr
-        adds r1, r3
-        mov lr, r1
-        .else
-        ldrb r3, [r2]   @ Länge des Strings holen  Fetch length of string
-        pushda r3
-        adds r3, #1     @ Plus 1 Byte für die Länge  One more for length byte
-        ands r1, r3, #1 @ Wenn es ungerade ist, noch einen mehr:  Maybe one more for aligning
-        adds r3, r1
-        adds lr, r3
-        .endif
+  movs r1, #1
+  adds r3, tos, #1 @ Plus 1 Byte für die Länge  One more for length byte
+  ands r1, r3      @ Wenn es ungerade ist, noch einen mehr:  Maybe one more for aligning
+  adds r3, r1
 
-  pop {r1, r2, r3}
-  bx lr  @ Leave string address on datastack.
+  .ifdef m0core
+    mov r1, lr
+    adds r1, r3
+    mov lr, r1
+  .else
+    adds lr, r3
+  .endif
 
+  bx lr  @ Leave string address and length on datastack.
 
 @ -----------------------------------------------------------------------------
   Wortbirne Flag_visible, "count"
@@ -297,43 +284,45 @@ count: @ ( str -- ) Gibt einen String aus  Print a counted string
   Wortbirne Flag_visible, "ctype"
 type: @ ( str -- ) Gibt einen String aus  Print a counted string
 @ -----------------------------------------------------------------------------
-   push {r0, r1, lr}
-   popda r1      @ r1 enthält die Stringadresse.      String address
-   ldrb r0, [r1] @ Hole die auszugebende Länge in r0  Fetch length to type
-   
-   cmp r0, #0  @ Wenn nichts da ist, bin ich fertig.  Any characters left ?
+   push {r0, lr}
+   ldrb r0, [tos] @ Hole die auszugebende Länge in r0  Fetch length to type
+
+   cmp r0, #0     @ Wenn nichts da ist, bin ich fertig.  Any characters left ?
    beq 2f
 
    @ Es ist etwas zum Tippen da !  Something available for typing !
-1: adds r1, #1   @ Adresse um eins erhöhen  Advance pointer
-   pushdatos     @ Platz auf dem Stack schaffen  Prepare space on datastack
-   ldrb tos, [r1] @ Zeichen holen                    Put character on datastack
-   bl emit        @ Zeichen senden                   Emit character
+1: adds tos, #1    @ Adresse um eins erhöhen  Advance pointer
+   dup
+   ldrb tos, [tos] @ Zeichen holen            Put character on datastack
+   bl emit         @ Zeichen senden           Emit character     
+   subs r0, #1     @ Ein Zeichen weniger      One character less
+   bne 1b
 
-   subs    r0, #1 @ Ein Zeichen weniger  One character less
-   bne     1b
-
-2: pop {r0, r1, pc}
+2: drop
+   pop {r0, pc}
 
 @ -----------------------------------------------------------------------------
   Wortbirne Flag_visible, "type"
 stype:  @ ( addr len -- ) Gibt einen String aus  Print a string
 @ -----------------------------------------------------------------------------
+   popda r1    @ Length to type
+   popda r0    @ Address of string
+
+stype_addr_r0_len_r1:
+
    push {lr}
 
-   popda r0    @ Length to type
-   cmp r0, #0  @ Zero characters ?
+   cmp r1, #0  @ Zero characters ?
    beq 2f
 
-   movs r1, #0 @ No characters printed yet.
+   movs r2, #0 @ No characters printed yet.
 
-1:   dup
-     ldrb tos, [tos, r1]
+1:   pushdatos
+     ldrb tos, [r0, r2]
      bl emit
 
-     adds r1, #1
-     cmp r0, r1   @ Any characters left ?
+     adds r2, #1
+     cmp r1, r2   @ Any characters left ?
      bne 1b
      
-2: drop
-   pop {pc}
+2: pop {pc}

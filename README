@@ -59,7 +59,8 @@ Communication is via serial 115200 baud 8N1 over
   - USART1 in STM32F429 (TX on PA9, RX on PA10)
   - UART0  in KL25Z128  (connected to USB-serial bridge on Freedom board)
   - UART5  in LM4F232
-
+  - UART0  in MK20DX256 (RX1/TX1 on Teensy 3.1.  Physical pins #2/#3 (these are also Digital IO 0/1 lines)
+    	      		Digital IO pins 18/19 are setup for CTS/RTS respectively
 
 Hardware and configuration for LM4F120 and TM4C123:
   Connect your cable to the Debug-USB-Port, 
@@ -166,6 +167,36 @@ Hardware and configuration for KL25Z128:
   Freescale Freedom binary images. Go into kl25z128/thumbulator 
   directory, type "make", copy the binary and then type 
   "thumbulator mecrisp-stellaris-kl25z128.bin" to run.
+
+Hardware and configuration for MK20DX256VLH7 on a Teensy 3.1 board:
+  ( Contributed by Mark Schweizer )
+
+  Connect USB cable to USB port
+  Open Teensy Loader Application (https://www.pjrc.com/teensy/loader.html) on your PC
+  Select the "mecrisp-stellaris-mk20dx256.hex" file in the mk20dx256 directory
+  Select the "Auto" button (this automatically loads the coad and resets the Teensy when the programming button is pushed)
+  Press the button on the Teensy 3.1 board to initite the bootloader
+  Connect a serial cable to TX1/RX1 (physical pins #2/#3 (these are also Digital IO 0/1 lines)
+  Optionally connect CTS/RTS to physical pins #25/26 (these are also Digital IO 18/18 lines)
+
+     		  R C
+     		  T T
+       		  S S
+       	 	    
+    o o o o o o o o o o o o o o
+   |--------------------------o
+   |     	     	      o
+USB|       Teensy 3.1 	      o
+   |     		      o
+   |--------------------------o
+    o o o o o o o o o o o o o o
+
+    G R T
+    N X X
+    D
+  
+  On startup, this runs with internal FLL at 20.97 MHz.  See MCG.txt for how to switch to 96MHz
+
 
 Hardware and configuration for nRF51822:
   ( Contributed by John Huberts )
@@ -593,7 +624,6 @@ Counted string routines:
 
         skipstring      ( cstr-addr -- a-addr )
                         Increases the pointer to the aligned end of the string.
-
 Pictured numerical output:
 
         .digit          ( u -- char ) Converts a digit to a char
@@ -609,12 +639,12 @@ Pictured numerical output:
         sign            ( n -- ) Add a minus sign to pictured number
                                  output buffer, if n is negative
 
-        #S              ( u1|n1 -- 0 0 ) Add all remaining digits
-                        from the single length number to output buffer
-        #               ( u1|n1 -- u2|n2 ) Add one digit from the
-                        single length number to output buffer
-        #>              ( u|n -- c-addr len )
-                        Drops number and finishes
+        #S              ( ud1|d1 -- 0 0 ) Add all remaining digits
+                        from the double length number to output buffer
+        #               ( ud1|d1 -- ud2|nd2 ) Add one digit from the
+                        double length number to output buffer
+        #>              ( ud|d -- c-addr len )
+                        Drops double-length number and finishes
                         pictured numeric output ready for type
         <#              ( -- ) Prepare pictured number output buffer
         u.              ( u -- ) Print unsigned single number
@@ -1062,6 +1092,8 @@ Interrupts:
 ; Specials for MK20DX256:
 ;------------------------------------------------------------------------------
 
+        ipsr            ( -- ipsr ) Interrupt Program Status Register
+
 Flash:
         eraseflash      ( -- ) Erases everything. Clears Ram. Restarts Forth.
 
@@ -1088,6 +1120,8 @@ Interrupts:
         irq-portc
         irq-portd
         irq-porte
+        irq-uart0S
+        irq-uart0E
 
   Look into vectors.s and interrupts.s to add more interrupts.
 

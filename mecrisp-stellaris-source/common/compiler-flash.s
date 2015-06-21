@@ -979,3 +979,18 @@ find: @ ( address length -- Code-Adresse Flags )
   pushda r3  @ Zielflags      oder 0  --> @ ( 0 0 - Nicht gefunden )   Push Flags on Stack. ( Destination-Code Flags ) or ( 0 0 ).
 
   pop {r0, r1, r2, r3, r4, r5, pc}
+
+@ -----------------------------------------------------------------------------
+find_not_found: @ Internal use. Gives "not found." message if find is not successful.
+@ -----------------------------------------------------------------------------
+  push {lr}
+
+  movs r1, tos  @ Save string address for later use
+  ldr r0, [psp]
+
+  bl find
+  ldr r2, [psp] @ Probe entry address
+  cmp r2, #0
+  bne 1f
+    bl not_found_addr_r0_len_r1
+1:pop {pc}

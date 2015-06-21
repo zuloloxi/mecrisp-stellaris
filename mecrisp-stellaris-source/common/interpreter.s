@@ -147,9 +147,10 @@ interpret:
     bne.n 1b   @ Zahl gefunden, alles gut. Interpretschleife fortsetzen.  Finished.
 
     @ Number mochte das Token auch nicht.
-    pushda r0
-    pushda r1
-    bl stype
+not_found_addr_r0_len_r1:
+@    pushda r0
+@    pushda r1
+    bl stype_addr_r0_len_r1
     Fehler_Quit_n " not found."
 
 @ -----------------------------------------------------------------------------

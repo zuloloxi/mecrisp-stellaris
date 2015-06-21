@@ -34,6 +34,13 @@
   bx lr
 
 @ -----------------------------------------------------------------------------
+  Wortbirne Flag_inline, "ipsr" @ ( -- int ) Read IPSR
+@ ----------------------------------------------------------------------------- 
+  pushdatos
+  mrs tos, ipsr
+  bx lr
+
+@ -----------------------------------------------------------------------------
   Wortbirne Flag_visible, "nop" @ ( -- ) Handler für unbenutzte Interrupts
 nop_vektor:                     @        Handler for unused Interrupts
 @ ----------------------------------------------------------------------------- 
@@ -59,6 +66,8 @@ interrupt portb
 interrupt portc
 interrupt portd
 interrupt porte
+interrupt UART0S
+interrupt UART0E
 
 @------------------------------------------------------------------------------
 

@@ -262,3 +262,23 @@
 
   - Added comments for nRF51822 in README
   - Fixed flaw in Pascal UDP ethernet terminal code
+
+09.07.2014, Mark Schweizer, Mecrisp-Stellaris 2.0.1
+
+  Following changes added for MK20DX256:
+
+  - terminal.s:  Turned on UART0 RX/TX FIFO
+                 Changed code for ensuring UART overrun flag is cleared
+		 Added support for hardware flow control
+  - vectors.s:   Added UART0_S/E interrupt vektor to permit the possibility
+                 of interrupt driven serial (interrupts not enabled by
+                 default)
+  - interrupt.s: Added "ipsr" word to push Interrupt Program Status Register
+                 on stack
+                 Added initialization of UART0S / UART0E interrupts
+  - README:      Documented serial connection, flashing, etc. (basic info)
+  - Forth:       Added more examples, cleaned up code.  Seperate README
+                 located in that directory.
+
+  Matthias Koch:
+  - Cleaned up core sources to save a few bytes

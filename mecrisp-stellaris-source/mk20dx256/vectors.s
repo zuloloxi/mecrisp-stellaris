@@ -93,8 +93,8 @@
 .word 0	            @ 42 Reserved
 .word 0	            @ 43 Reserved
 .word nullhandler+1 @ 44 UART0 LON sources
-.word nullhandler+1 @ 45 UART0 Status sources
-.word nullhandler+1 @ 46 UART0 Error sources
+.word irq_vektor_UART0S+1 @ 45 UART0 Status sources
+.word irq_vektor_UART0E+1 @ 46 UART0 Error sources
 .word nullhandler+1 @ 47 UART1 status sources
 .word nullhandler+1 @ 48 UART1 Error sources
 .word nullhandler+1 @ 49 UART2 Status

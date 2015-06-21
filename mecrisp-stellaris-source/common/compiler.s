@@ -35,41 +35,11 @@
 tick: @ Nimmt das nächste Token aus dem Puffer, suche es und gibt den Einsprungpunkt zurück.
 @ -----------------------------------------------------------------------------
   push {lr}
-  bl token @ Hole den Namen der neuen Definition.  Fetch Name
-  @ ( Tokenadresse Länge )
-
-  @ Überprüfe, ob der Token leer ist.
-  @ Das passiert, wenn der Eingabepuffer nach create leer ist.
-
-  popda r2       @ Length
-  popda r3       @ Address
-  cmp r2, #0     @ Check if token is empty. Maybe input buffer is exhausted after Tick...
-  bne 1f
-
-    @ Token ist leer. Brauche Stacks nicht zu putzen.
-    Fehler_Quit " ' needs name !"
-
-1:@ Tokenname ist okay.
-  @ Prüfe, ob es schon existiert.
-  pushda r3
-  pushda r2
-  bl find
-  @ ( Einsprungadresse Flags )
-  drop @ Benötige die Flags hier nicht. Möchte doch nur schauen, ob es das Wort schon gibt.
-  @ ( Einsprungadresse )  No need for Flags here. Just check if it is found and give back its code entry address.
-  cmp tos, #0
-  bne 2f
-
-nicht_gefunden:
-  pushda r3
-  pushda r2
-  bl stype
-  Fehler_Quit " not found."
-
-2:@ Gefunden, alles gut
+  bl token
+  bl find_not_found
+  drop @ No need for Flags here
   pop {pc}
 
-@ : pif postpone if immediate ;  : ja? pif ." Ja" else ." Nein" then ;
 @------------------------------------------------------------------------------
   Wortbirne Flag_immediate, "postpone" @ Sucht das nächste Wort im Eingabestrom  Search next token and fill it in Dictionary in a special way.
                                        @ und fügt es auf besondere Weise ein.
@@ -77,17 +47,11 @@ nicht_gefunden:
   push {lr}
 
   bl token
-  @ ( Adresse Länge )
-  movs r2, tos
-  ldr r3, [psp]
+  bl find_not_found
 
-  bl find
   @ ( Einsprungadresse Flags )
   popda r0 @ Flags holen  Fetch Flags
-
   @ ( Einsprungadresse )  
-  cmp tos, #0  @ Not found ?
-  beq.n nicht_gefunden
 
 1:movs r1, #Flag_immediate  @ In case definition is immediate: Compile a call to its address.
   ands r1, r0

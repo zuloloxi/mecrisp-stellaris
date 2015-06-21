@@ -41,9 +41,7 @@
 
 @ 32 Bit Register
 
-.equ PORTB_PCR16,  0x4004A040
-.equ PORTB_PCR17,  0x4004A044
-
+.equ PORTB_PCR,	   0x4004A000
 
 .equ PORT_PCR_MUX_3, 3<<8 		@ pg 227 defines MUX concept. 011 = Alternative 3 defined on pg 208.  Puts UART0 on 0/1 of teensy 
 
@@ -61,6 +59,12 @@
 .equ UART0_MA2,   0x4006A009
 .equ UART0_C4,    0x4006A00A
 .equ UART0_C5,    0x4006A00B
+.equ UART0_MODEM, 0x4006A00D
+.equ UART0_PFIFO, 0x4006A010
+.equ UART0_CFIFO, 0x4006A011
+.equ UART0_SFIFO, 0x4006A012
+.equ UART0_RWFIFO,0x4006A015
+
 
 .equ UARTLP_C2_RE_MASK, 0x4
 .equ UARTLP_C2_TE_MASK, 0x8
@@ -88,13 +92,15 @@ uart_init: @ ( -- )
   ldr  r0, =SIM_SOPT5
   str  r1, [r0]
  
-  @ Select "Alt 3" usage to enable UART0 on pins
-  ldr r1, =PORT_PCR_MUX_3
+  @ Select "Alt 3" usage to enable UART0 on "Digital Pin" 0/1 on Teensy
+  @ and RTS/CTS on "Digital Pin" 18/19
 
-  ldr r0, =PORTB_PCR16
-  str r1, [r0]
-  ldr r0, =PORTB_PCR17
-  str r1, [r0]
+  ldr r1, =PORT_PCR_MUX_3
+  ldr r0, =PORTB_PCR
+  str r1, [r0, 0x40]	@ PTB16 (16*4 = 0x40)
+  str r1, [r0, 0x44]	@ PTB17 (17*4 = 0x44)
+  str r1, [r0, 0x08] 	@ PTB2
+  str r1, [r0, 0x0C]	@ PTB3
 
   @ Init UART
   movs r1, #0
@@ -132,6 +138,35 @@ uart_init: @ ( -- )
   ldr  r0, =UART0_BDL
   strb r1, [r0]
 
+@ Setup FIFOs
+
+  @ PFIFO register must be written only when C2[RE] and C2[TE] are cleared and when the data buffer is empty.
+  movs r1, 0xC0
+  ldr  r0, =UART0_CFIFO
+  strb r1, [r0]  	@ Flush buffers, turn off overflow interrupts
+
+  movs r1, 0x88		@ Transmit/Receive FIFO enable
+  ldr  r0, =UART0_PFIFO
+  orrs r1, r0, r1
+  strb r1, [r0]
+
+  @ TXFLUSH and RXFLUSH commands must be issued immediately after changing FIFO enable
+  movs r1, 0xC0
+  ldr  r0, =UART0_CFIFO
+  strb r1, [r0]  	@ Flush buffers, turn off overflow interrupts
+
+  @ Set the watermark for triggering RTS deassert for HW flow control
+  ldr r0, =UART0_RWFIFO
+  movs r1, 0x1	@ 1 character ( 8 character FIFO leaves 7 characters spare)
+  strb r1, [r0]
+
+  @ Enable Receiver RTS.  Transmitter CTS left to Forth code in case
+  @ users don't want hardware flow control
+  ldr r0, =UART0_MODEM
+  movs r1, 0x08		@ RXRTSE bit
+  strb r1, [r0]
+  
+  @ Finally, enable receiver and transmitter
   movs r1, #UARTLP_C2_RE_MASK | UARTLP_C2_TE_MASK
   ldr  r0, =UART0_C2
   strb r1, [r0]
@@ -173,6 +208,8 @@ serial_key: @ ( -- c ) Receive one character
    cmp tos, #0
    drop
    beq 1b
+   ldr r0, =UART0_S1  @ This is to ensure flags like OR get reset
+   ldrb r0, [r0]
 
    ldr r0, =UART0_D   @ Einkommendes Zeichen abholen
    pushdatos          @ Platz auf dem Datenstack schaffen
@@ -190,9 +227,11 @@ serial_qemit:  @ ( -- ? ) Ready to send a character ?
    bl pause
 
    @ Clear receiver overrun flag as it could stall communication completely.
-   ldr  r0, =UART0_S1
-   movs r1, #UART_S1_OR_MASK
-   strb r1, [r0]
+   @ Removed this code.  S1 is read only.  Reference manual specifies:
+   @ "To clear OR, read S1 when OR is set and then read D"
+@   ldr  r0, =UART0_S1
+@   movs r1, #UART_S1_OR_MASK
+@   strb r1, [r0]
 
    pushdaconst 0
 
@@ -213,18 +252,31 @@ serial_qkey:  @ ( -- ? ) Is there a key press ?
    bl pause
 
    @ Clear receiver overrun flag as it could stall communication completely.
-   ldr  r0, =UART0_S1
-   movs r1, #UART_S1_OR_MASK
-   strb r1, [r0]
+   @ Removed this code.  S1 is read only.  Reference manual specifies:
+   @ "To clear OR, read S1 when OR is set and then read D"
+@   ldr  r0, =UART0_S1
+@   movs r1, #UART_S1_OR_MASK
+@   strb r1, [r0]
 
    pushdaconst 0
 
-   ldr r0, =UART0_S1
-   movs r2, #UART_S1_RDRF_MASK
+   @  I wanted to implement hwardware flow control, and would like to use the
+   @  feature of deasserting RTS when the FIFO watermark is reached.  However,
+   @  by implementing the watermark feature, polling RDRF mask only asserts
+   @  when the watermark is full (i.e., there can be characters in the FIFO.
+   @  but the FIFO is not at the watermark level, so it does not assert).
+   @  Swtiching to check RXEMPT (Receive Buffer/FIFO Empty) instead
+
+@   ldr r0, =UART0_S1
+@   movs r2, #UART_S1_RDRF_MASK
+    ldr r0, =UART0_SFIFO
+    movs r2, 0x40	@ Mask for the RXEMPT bit
+        
 
    ldrb r1, [r0]     @ Warte solange bis Receive-Register voll ist.
    ands r1, r2
-   beq 1f
+@   beq 1f
+    bne 1f	@ Now we are checking if is empty, rather than is full
      mvns tos, tos
 1: pop {pc}
 
