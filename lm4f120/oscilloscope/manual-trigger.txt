@@ -11,7 +11,7 @@
 
   begin
     start
-      begin ?key until
+      begin key? until
     stop
   key 27 <> while
     plotwave cr

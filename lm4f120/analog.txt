@@ -109,7 +109,7 @@ random hex.
 random hex.
 random hex.
 
-: measure-a0 init-ain0 begin 0 analog u. 5 spaces temperature u. cr ?key until ;
+: measure-a0 init-ain0 begin 0 analog u. 5 spaces temperature u. cr key? until ;
 
 : all-analogs
   init-ain0  init-ain1  init-ain2  init-ain3  init-ain4  init-ain5  init-ain6  init-ain7  init-ain8  init-ain9  init-ain10  init-ain11
@@ -128,5 +128,5 @@ random hex.
    10 analog hex.
    11 analog hex.
     cr
-  ?key until
+  key? until
 ;

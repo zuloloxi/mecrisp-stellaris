@@ -359,6 +359,29 @@ schuhu: push {lr}
 .equ dodoes_byte2,  (dodoesaddr + 1)     & 255
 
 
+@ -----------------------------------------------------------------------------
+  Wortbirne Flag_visible, "create" @ ANS-Create with default action.
+@ -----------------------------------------------------------------------------
+  push {lr}
+  bl builds
+
+  @ Copy of the inline-code of does>
+
+  @ Benötigt das High-Word nicht, da dodoes weit am Anfang des Flashs sitzt.  High word not needed as dodoes in core is in the lowest 64 kb.
+  movs r0, #dodoes_byte1
+  lsls r0, #8
+  adds r0, #dodoes_byte2
+  blx r0 @ Den Aufruf mit absoluter Adresse einkompilieren. Perform this call with absolute addressing.
+
+    @ Die Adresse ist hier nicht auf dem Stack, sondern in LR. LR ist sowas wie "TOS" des Returnstacks.
+    @ Address is in LR which is something like "TOS in register" of return stack.
+
+  pushdatos
+  mov tos, lr
+  subs tos, #1 @ Denn es ist normalerweise eine ungerade Adresse wegen des Thumb-Befehlssatzes.  Align address. It is uneven because of Thumb-instructionset bit set.
+  
+  pop {pc}
+
 @------------------------------------------------------------------------------
   Wortbirne Flag_inline, "does>"
 does: @ Gives freshly defined word a special action.
@@ -452,7 +475,7 @@ dodoes:
 
 @ -----------------------------------------------------------------------------
   Wortbirne Flag_visible, "<builds"
-        @ Beginnt ein Defining-Wort.  Start a defining definition.
+builds: @ Beginnt ein Defining-Wort.  Start a defining definition.
         @ Dazu lege ich ein neues Wort an, lasse eine Lücke für den Call-Befehl. Create a new definition and leave space for inserting the does>-Call later.
         @ Keine Strukturkennung  No structure pattern matching here !
 @ -----------------------------------------------------------------------------

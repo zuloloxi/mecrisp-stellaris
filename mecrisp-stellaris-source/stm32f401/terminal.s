@@ -37,7 +37,7 @@
   .equ RCC_APB1ENR     ,   RCC_BASE + 0x40
 
   .equ Terminal_USART_Base, 0x40004400 @ USART 2
-  .include "../common/stm-terminal.s"  @ Common STM terminal code for emit, key and ?key
+  .include "../common/stm-terminal.s"  @ Common STM terminal code for emit, key and key?
 
 @ -----------------------------------------------------------------------------
 uart_init: @ ( -- )

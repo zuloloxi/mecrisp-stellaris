@@ -283,11 +283,13 @@ divmod_plus_plus:
 */
 
 @ -----------------------------------------------------------------------------
-  Wortbirne Flag_foldable_0, "base" @ ( -- addr )
+  Wortbirne Flag_visible|Flag_variable, "base" @ ( -- addr )
+  CoreVariable base
 @ -----------------------------------------------------------------------------
   pushdatos
   ldr tos, =base
   bx lr
+  .word 10
 
 @ -----------------------------------------------------------------------------
   Wortbirne Flag_visible, "binary" @ ( -- )

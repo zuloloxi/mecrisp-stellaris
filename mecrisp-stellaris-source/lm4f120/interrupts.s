@@ -47,6 +47,7 @@ nop_vektor:                     @        Handler for unused Interrupts
 interrupt systick
 initinterrupt fault, nullhandler, unhandled
 
+interrupt terminal
 interrupt porta
 interrupt portb
 interrupt portc

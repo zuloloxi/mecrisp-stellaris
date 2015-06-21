@@ -1,15 +1,6 @@
 
 compiletoflash
 
-: spaces 0 ?do space loop ;
-: invert  not  inline 1-foldable ;
-
-: count dup c@ ; ( cstr-addr -- cstr-addr count )
-
-: octal 8 base ! ;
-: sqr ( n -- n^2 ) dup * 1-foldable ;
-: star 42 emit ;
-
 : Flamingo cr
 ."      _" cr
 ."     ^-)" cr
@@ -120,7 +111,10 @@ $E000E018 constant NVIC_ST_CURRENT_R
 
 cornerstone Rewind-to-Basis
 
-: readbutton ( -- ) init-delay begin button? . cr 200 ms ?key until ;
+compiletoram
+init
+
+: readbutton ( -- ) init-delay begin button? . cr 200 ms key? until ;
 
 : tick  ( -- ) ." Tick" cr ;
 
@@ -129,9 +123,3 @@ cornerstone Rewind-to-Basis
   systick-1Hz
   eint
 ;
-
-cornerstone Rewind-to-Examples
-
-
-compiletoram
-init

@@ -176,13 +176,7 @@ Sucheflashpointer_Speicherbelegung_fertig:
   @ Prüfe den Link Check Link.
  
 
-  .ifdef m0core
-  ldr r0, =-1
-  cmp r2, r0
-  .else
-  cmp r2, #-1 @ Ungesetzter Link bedeutet Ende erreicht  Unset Link means end of dictionary detected.
-  .endif
-
+  adds r0, r2, #1 @ -1 +1 = 0 Ungesetzter Link bedeutet Ende erreicht  Unset Link means end of dictionary detected.
   beq.n SucheFlashPointer_Fadenende_gefunden
 
   @ writeln " Folge dem Link, er ist gesetzt"

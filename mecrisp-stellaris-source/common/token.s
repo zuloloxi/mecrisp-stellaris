@@ -20,90 +20,65 @@
 @ Token and parse to cut contents of input buffer apart
 
 @ -----------------------------------------------------------------------------
-  Wortbirne Flag_visible, "token" @ ( -- Addr )
+  Wortbirne Flag_visible, "token" @ ( -- c-addr length )
 token:
 @ -----------------------------------------------------------------------------
-  movs r0, #32 @ Leerzeichen  Space
-  pushda r0
+  pushdatos
+  movs tos, #32 @ Leerzeichen  Space
   b.n parse
 
 @ -----------------------------------------------------------------------------
-  Wortbirne Flag_visible, "parse" @ ( c -- Addr )
+  Wortbirne Flag_visible, "parse" @ ( c -- c-addr length )
 parse:
 @ -----------------------------------------------------------------------------
-  push {r4, r5, lr}
-  @ Mal ein ganz anderer Ansatz:
-  @ Der Eingabepuffer bleibt die ganze Zeit unverändert.
-  @ Pufferstand gibt einfach einen Offset in den Eingabepuffer, der zeigt, wie viele Zeichen schon verbraucht worden sind.
-  @ Zu Beginn ist der Pufferstand 0.
-  @ Sind alle Zeichen verbraucht, ist der Pufferstand gleich der Länge des Eingabepuffers.
+  push {r4, lr} @ Eigentlich nur r4 nötig
+  @ Parse nochmal neu überdenken:
 
-  @ Kopiere die Zeichen in den Tokenpuffer.
-
-  @ The idea is to copy characters from input buffer into token buffer.
-  @ Pufferstand is a variable indicating how many characters of the input buffer are already consumed. It is 0 after query.
-  @ Are all characters collected, Pufferstand equals length of input.
-
-  ldr r0, =Eingabepuffer @ Pointer auf den Eingabepuffer         Pointer to input buffer
-  ldrb r1, [r0]          @ Länge des Eingabepuffers              Length of input buffer
+  bl source
+  popda r1  @ Length  of input buffer
+  popda r0  @ Pointer to input buffer
 
   ldr r2, =Pufferstand
-  ldrb r2, [r2]          @ Aktuellen Pufferstand                 Current input buffer gauge
+  ldr r2, [r2] @ Current >IN gauge
 
-  ldr r3, =Tokenpuffer   @ Pointer für den Sammelpuffer          Pointer to collection buffer
-  movs r4, #0            @ Zahl der aktuell gesammelten Zeichen  Number of already collected characters
-
-  @ TOS                  @ Gesuchtes Trennzeichen  Delimiter searched for
-
-  @ Beginne beim Pufferstand:
-  adds r0, r2 @ Aktuellen Pufferstand zum Pointer hinzuaddieren  Skip already consumed characters
+  adds r4, r0, r2 @ Start address of parsed string
 
   @ Speziell for Token, falls das Trennzeichen das Leerzeichen ist:
   cmp tos, #32
   bne 2f
 
-    @ Führende Leerzeichen abtrennen.  Skip leading delimiters if delimiter is space. This special behaviour is needed for token.
-4:  cmp r1, r2 @ Ist noch etwas da ?  Something left ?
+1:  cmp r1, r2 @ Any characters left ?
     beq 3f
+      ldrb r3, [r0, r2] @ Fetch character
+      cmp r3, tos @ Ist es das Leerzeichen ? Is this the delimiter which is space in this loop ?
+      bne 2f
+        adds r2, #1     @ Don't collect spaces, advance >IN to skip.
+        adds r4, r0, r2 @ Recalculate start address of parsed string
+        b 1b
 
-    @ Hole ein Zeichen.  Fetch one character.
-    adds r0, #1 @ Eingabepufferzeiger um ein Zeichen weiterrücken.  Advance pointers.
-    adds r2, #1 @ Pufferstand um ein Zeichen weiterschieben
-
-    @ Hole an der Stelle ein Zeichen und entscheide, was damit zu tun ist.
-    ldrb r5, [r0]
-    cmp r5, tos @ Ist es das Leerzeichen ?
-    beq 4b @ Führende Leerzeichen nicht Sammeln.             Skip spaces.
-    b 5f   @ Ist es etwas anderes, dann beginne zu Sammeln.  Start collecting if this is not space.
-
-
-2: @ Sammelschleife. Collecting loop.
-
-  @ Erster Schritt: Ist noch etwas zum Sammeln da ?  Something left ?
-  cmp r1, r2
+2:@ Sammelschleife. Collecting loop.
+  cmp r1, r2 @ Any characters left ?
   beq 3f
+    ldrb r3, [r0, r2] @ Fetch character
+    adds r2, #1       @ Advance >IN
+    cmp r3, tos @ Is this the delimiter ?
+    bne 2b
+      @ Finished, fallthrough for delimiter detected.
+      adds tos, r0, r2
+      subs tos, r4
+      subs tos, #1 @ Delimiter should not be part of the parsed string but needs to be count in >IN
+      b 4f
 
-  @ Zweiter Schritt: Hole ein Zeichen.  Fetch a character.
-  adds r0, #1 @ Eingabepufferzeiger um ein Zeichen weiterrücken. Advance pointers.
-  adds r2, #1 @ Pufferstand um ein Zeichen weiterschieben
-  @ Hole an der Stelle ein Zeichen und entscheide, was damit zu tun ist.
-  ldrb r5, [r0]
-  cmp r5, tos    @ Wenn das Trennzeichen erreicht ist, höre auf.  Stop if this is a delimiter.
-  beq 3f
+3:@ Finished. Fallthrough for end-of-string. Calculate length of parsed string
+  adds tos, r0, r2
+  subs tos, r4
 
-5: @ Wenn es mir gefällt, nimm es in den Tokenpuffer auf. I like the character. Collect it !
-  adds r3, #1 @ Pointer weiterschieben  Advance pointers.
-  adds r4, #1 @ Zahl der gesammelten Zeichen weiterschieben
-  strb r5, [r3] @ Write collected character into buffer.
-  b 2b @ Sammelschleife
+4:@ Store start address
+  subs psp, #4
+  str r4, [psp]
 
-
-3: @ Fertig, entweder nichts mehr da, oder Trennzeichen gefunden.  Finished. Either input is exhausted or delimiter is found.
+  @ Store new >IN
   ldr r0, =Pufferstand
-  strb r2, [r0]         @ Aktuellen Pufferstand vermerken.  Save current input buffer gauge.
+  str r2, [r0] @ Fresh >IN gauge
 
-  ldr tos, =Tokenpuffer @ Tokenpufferadresse zurückgeben.   Give back buffer address
-  strb r4, [tos]        @ Zahl der gesammelten Zeichen vermerken  Save number of collected characters as length byte in buffer.
-
-  pop {r4, r5, pc}
- 
+  pop {r4, pc}

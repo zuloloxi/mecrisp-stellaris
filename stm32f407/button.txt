@@ -15,4 +15,4 @@ PORTA_BASE $20 + constant PORTA_AFRL     \ Reset 0 Alternate function  low regis
 PORTA_BASE $24 + constant PORTA_AFRH     \ Reset 0 Alternate function high register 
 
 : button? ( -- ? ) 1 porta_idr bit@ ;
-: buttonstate begin button? . cr ?key until ;
+: buttonstate begin button? . cr key? until ;

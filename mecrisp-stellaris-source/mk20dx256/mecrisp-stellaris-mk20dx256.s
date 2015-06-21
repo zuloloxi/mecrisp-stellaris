@@ -94,7 +94,7 @@ Restart:
    @ Catch the pointers for Flash dictionary
    .include "../common/catchflashpointers.s"
 
-   writeln "Mecrisp-Stellaris 1.1 by Matthias Koch"
+   welcome " by Matthias Koch"
    @ You do not have to include the below ... my contributions were minor
    writeln "Configuration for Teensy 3.1 platform by Mark Schweizer"
    @ Dear Mark, you created a whole new target ! My congratulations - and of course you get credits for this :-) Matthias

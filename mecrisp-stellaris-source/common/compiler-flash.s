@@ -24,6 +24,8 @@
   Wortbirne Flag_visible, "smudge" @ ( -- )
 smudge:
 @ -----------------------------------------------------------------------------
+  push {lr}
+
   ldr r0, =Dictionarypointer @ Check Dictionarypointer to decide if we are currently compiling for Flash or for RAM.
   ldr r1, [r0]
 
@@ -42,8 +44,6 @@ smudge:
     @ That must not be ! It would be detected as free space on next Reset and simply overwritten.
     @ To prevent it a zero is applied at the end in this case.
 
-    push {lr}
-
     @ r1 enthält den DictionaryPointer.  r1 already contains Dictionarypointer
     subs r1, #2
     ldrh r2, [r1]
@@ -55,9 +55,7 @@ smudge:
       bl hkomma
 1:  @ Okay, Ende gut, alles gut. Fine :-)
 
-    .ifdef emulated16bitflashwrites
-      bl align4komma @ Align on 4 to make sure the last opcode is actually written to Flash.
-    .endif
+    bl align4komma @ Align on 4 to make sure the last opcode is actually written to Flash and to fullfill ANS requirement.
 
     @ Brenne die gesammelten Flags:  Flash in the collected Flags:
     ldr r0, =FlashFlags
@@ -86,8 +84,9 @@ smudge:
   @ -----------------------------------------------------------------------------
   @ Smudge for RAM
 smudge_ram:
+  bl align4komma @ Align on 4 to fullfill ANS requirement.
   pushdaconst Flag_visible
-  b.n setflags
+  b.n setflags_intern
 
 @ -----------------------------------------------------------------------------
   Wortbirne Flag_visible, "setflags" @ ( x -- )
@@ -96,6 +95,7 @@ setflags: @ Setflags collects the Flags if compiling for Flash, because we can w
 @ -----------------------------------------------------------------------------
   push {lr}
 
+setflags_intern:
   ldr r0, =Dictionarypointer
   ldr r1, [r0]
 
@@ -143,6 +143,23 @@ setflags_ram:
   pop {pc}
 
  .ltorg
+
+@ -----------------------------------------------------------------------------
+  Wortbirne Flag_visible, "align" @ ( -- ) 
+@ -----------------------------------------------------------------------------
+  b.n align4komma
+
+@ -----------------------------------------------------------------------------
+  Wortbirne Flag_visible|Flag_foldable_1, "aligned" @ ( c-addr -- a-addr ) 
+@ -----------------------------------------------------------------------------
+  movs r0, #1
+  ands r0, tos
+  adds tos, r0
+
+  movs r0, #2
+  ands r0, tos
+  adds tos, r0
+  bx lr
 
 @ If your particular Flash controller doesn't support byte write access, 
 @ you can remove align, and c, without breaking anything.
@@ -194,9 +211,9 @@ align4komma: @ Macht den Dictionarypointer auf 4 gerade
   .ifdef charkommaavailable
 @ -----------------------------------------------------------------------------
   Wortbirne Flag_visible, "c," @ ( x -- ) 
-ckomma: @ Fügt 8 Bits an das Dictionary an.
+ckomma:  @ Fügt 8 Bits an das Dictionary an.
 @ -----------------------------------------------------------------------------
-  push {lr} @ Wird intern nur von string, benutzt.
+  push {lr}
   ldr r0, =Dictionarypointer
   ldr r1, [r0] @ Hole den Dictionarypointer
 
@@ -276,37 +293,60 @@ reversekomma: @ Fügt 32 Bits an das Dictionary an   Write 32 bits in Dictionary
 
 
 @ -----------------------------------------------------------------------------
-  Wortbirne Flag_visible, "string," @ ( addr -- ) 
+  Wortbirne Flag_visible, "string," @ ( c-addr length -- ) 
 stringkomma: @ Fügt ein String an das Dictionary an  Write a string in Dictionary.
 @ -----------------------------------------------------------------------------
    push {r0, r1, r2, lr}
    @ Schreibt einen String in 16-Bit-Happen ins Dictionary
    @ Write a string in 16-Bit chunks.
+   @ write "string, : >"
+   @ ddup
+   @ bl stype
+   @ writeln "<"
 
-   popda r0      @ Hole die Stringadresse                             Fetch string address
-   ldrb r1, [r0] @ Hole die auszugebende Länge in r2                  Fetch length
-   adds r1, #1   @ Ein Byte mehr ausgeben, das Längenbyte zählt mit   One more for length byte
+   movs r1, #0xFF @ Maximum counted string length
+   ands r1, tos   @ Fetch string length
+   drop
+   popda r0 @ Fetch string address
 
-   @ Gib nun ab der Adresse r0 so viele Bytes aus, wie in r1 registriert sind.
-1: @ Zuerst in Zweierblöcken voranschreiten:   Advance in steps of two bytes
-   cmp r1, #2
-   blo 2f
+   cmp r1, #0 @ Zero length string ?
+   bne 1f
 
-   ldrh r2, [r0] @ Zwei Bytes holen
-   pushda r2     @   und ins Dictionary schreiben
+     pushdaconst 0
+     bl hkomma
+     pop {r0, r1, r2, pc}
+
+1: @ Write length byte and the first character.
+   pushdatos
+   ldrb tos, [r0]
+   lsls tos, #8
+   orrs tos, r1
    bl hkomma
+   adds r0, #1 @ Advance pointer
+   subs r1, #1 @ One character less left
 
-   adds r0, #2 @ Pointer weiterrücken
-   subs r1, #2 @ Zwei Zeichen weniger
-   beq 3f      @ Null erreicht ? Fertig !
-   b 1b
-
-2: @ Ein Zeichen übrig:  One single character left ? Pad with zero and write !
-   ldrb r2, [r0] @ Ein Byte holen, der Rest des Registers wird automatisch ausgenullt
-   pushda r2     @ Little Endian sei Dank :-)
+2: cmp r1, #2 @ Two or more characters left ?
+   blo 3f
+   @ Write two characters.
+   pushdatos
+   ldrb tos, [r0, #1]
+   lsls tos, #8
+   ldrb r2, [r0]
+   orrs tos, r2
    bl hkomma
+   adds r0, #2 @ Advance pointer
+   subs r1, #2 @ One character less left
+   b 2b
 
-3: @ Fertig !
+3: @ One or zero characters left.
+   cmp r1, #0
+   bne 4f
+     pop {r0, r1, r2, pc}
+
+4: @ One character left
+   pushdatos
+   ldrb tos, [r0]
+   bl hkomma   
    pop {r0, r1, r2, pc}
 
 @------------------------------------------------------------------------------
@@ -427,7 +467,7 @@ Zweitpointertausch:
   .ltorg 
 
 @ -----------------------------------------------------------------------------
-  Wortbirne Flag_visible, "create"
+  Wortbirne Flag_visible, "(create)"
 create: @ Nimmt das nächste Token aus dem Puffer,
         @ erstellt einen neuen Kopf im Dictionary und verlinkt ihn.
         @ Fetch new token from buffer, create a new dictionary header and take care of links.
@@ -436,52 +476,42 @@ create: @ Nimmt das nächste Token aus dem Puffer,
 @ -----------------------------------------------------------------------------
   push {lr}
   bl token @ Hole den Namen der neuen Definition.  Fetch name for new definition.
-  @ ( Tokenadresse )
+  @ ( Tokenadresse Länge )
 
-  @ Überprüfe, ob der Token leer ist.
-  @ Das passiert, wenn der Eingabepuffer nach create leer ist.
-
-  popda r0
-  ldrb r1, [r0]
-  cmp r1, #0     @ Check if token is empty. That happens if input buffer is empty after create.
+  cmp tos, #0     @ Check if token is empty. That happens if input buffer is empty after create.
   bne 1f
-
     @ Token ist leer. Brauche Stacks nicht zu putzen.
     Fehler_Quit " Create needs name !"
 
 1:@ Tokenname ist okay.               Name is ok.
   @ Prüfe, ob er schon existiert.     Check if it already exists.
-  pushda r0
-  dup
-  @ ( Tokenadresse Tokenadresse )
+  ddup
+  @ ( Tokenadresse Länge Tokenadresse Länge )
   bl find
-  @ ( Tokenadresse Einsprungadresse Flags )
+  @ ( Tokenadresse Länge Einsprungadresse Flags )
   drop @ Benötige die Flags hier nicht. Möchte doch nur schauen, ob es das Wort schon gibt.  No need for the Flags...
-  @ ( Tokenadresse Einsprungadresse )  
+  @ ( Tokenadresse Länge Einsprungadresse )  
     
   @ Prüfe, ob die Suche erfolgreich gewesen ist.  Do we have a search result ?
-  popda r0
-  @ ( Tokenadresse )
-  cmp r0, #0
+  cmp tos, #0
+  drop
+  @ ( Tokenadresse Länge )
   beq 2f
+    ddup
     write "Redefine "
-    dup     @ ( Tokenadresse Tokenadresse )
-    bl type @ Den neuen Tokennamen nochmal ausgeben
+    bl stype @ Den neuen Tokennamen nochmal ausgeben
     writeln "."
 
-2:@ ( Tokenadresse )
+2:@ ( -- )
 
   .ifdef charkommaavailable
   bl alignkomma @ Auf zwei gerade machen    Align, just in case. Can be removed if there is no c, available. Add a check for uneven allots instead !
   .endif
 
-  .ifdef m0core
   bl align4komma
-  .endif
-
   bl here @ Das wird die neue Linkadresse
 
-  @ ( Tokenadresse Neue-Linkadresse )
+  @ ( Tokenadresse Länge Neue-Linkadresse )
 
   @ Prüfe, ob der Dictionarypointer im Ram oder im Flash ist:
   ldr r0, =Dictionarypointer
@@ -493,7 +523,7 @@ create: @ Nimmt das nächste Token aus dem Puffer,
 
   @ -----------------------------------------------------------------------------
   @ Create for Flash
-  @ ( Tokenadresse Neue-Linkadresse )
+  @ ( Tokenadresse Länge Neue-Linkadresse )
 
   ldr r0, =FlashFlags
   movs r1, #Flag_visible
@@ -502,7 +532,7 @@ create: @ Nimmt das nächste Token aus dem Puffer,
   pushdaconst 6 @ Lücke für die Flags und Link lassen  Leave space for Flags and Link - they are not known yet at this time.
   bl allot
   
-  swap
+  bl minusrot
   bl stringkomma @ Den Namen einfügen  Insert Name
   @ ( Neue-Linkadresse )
 
@@ -516,12 +546,8 @@ create: @ Nimmt das nächste Token aus dem Puffer,
   @ adds r1, #2 @ Flag-Feld überspringen  Skip its Flags
 
   ldr r2, [r1] @ Inhalt des Link-Feldes holen  Check if Link is set
-  .ifdef m0core
-  ldr r3, =-1
-  cmp r2, r3
-  .else
-  cmp r2, #-1  @ Ist der Link ungesetzt ?      Isn't it ?
-  .endif
+
+  adds r3, r2, #1 @ Ist der Link ungesetzt ?      Isn't it ?
   bne 1f
 
   @ Neuen Link einfügen: Im Prinzip str tos, [r1] über Komma.
@@ -546,7 +572,7 @@ create: @ Nimmt das nächste Token aus dem Puffer,
   @ -----------------------------------------------------------------------------
   @ Create for RAM
 create_ram:
-  @ ( Tokenadresse Neue-Linkadresse )
+  @ ( Tokenadresse Länge Neue-Linkadresse )
 
   @ Link setzen  Write Link
   ldr r0, =Fadenende
@@ -564,7 +590,7 @@ create_ram:
   ldr r0, =Fadenende
   popda r1
   str r1, [r0]
-  @ ( Tokenadresse )
+
   @ Den Namen schreiben  Write Name
   bl stringkomma
 
@@ -870,9 +896,9 @@ skipstring: @ Überspringt einen String, dessen Adresse in r0 liegt.  Skip strin
 
 @ -----------------------------------------------------------------------------
   Wortbirne Flag_visible, "find"
-find: @ ( str -- Code-Adresse Flags )
+find: @ ( address length -- Code-Adresse Flags )
 @ -----------------------------------------------------------------------------
-  push {r0, r1, r2, r3, r4, lr}
+  push {r0, r1, r2, r3, r4, r5, lr}
         
   @ r0  Hangelpointer   Pointer for crawl the dictionary
   @ r1  Flags           Flags
@@ -883,6 +909,7 @@ find: @ ( str -- Code-Adresse Flags )
 
   @ r4  Adresse des zu suchenden Strings  Address of string that is searched for
 
+  popda r5     @ Fetch string length
   movs r4, tos @ Zu suchenden String holen, Lücke auf dem Datenstack lassen  Fetch string address, leave space on datastack
 
   bl dictionarystart
@@ -890,7 +917,6 @@ find: @ ( str -- Code-Adresse Flags )
 
   movs tos, #0  @ Noch keinen Treffer          No hits yet
   movs r3, #0   @ Und noch keine Trefferflags  No hits have no Flags
-
 
 1:   @ Ist an der Stelle der Namenslänge $FF ? Dann ist der Faden abgelaufen.  If there is $FF in the location for the name length the dictionary search is over.
      @ Prüfe hier die Namenslänge als Kriterium
@@ -912,7 +938,9 @@ find: @ ( str -- Code-Adresse Flags )
 
           @ --> Name
           pushda r0
+          bl count
           pushda r4
+          pushda r5
           bl compare
 
           cmp tos, #0 @ Flag vom Vergleich prüfen  Ckeck for Flag from string comparision
@@ -936,14 +964,10 @@ find: @ ( str -- Code-Adresse Flags )
 2:      @ Weiterhangeln  Continue crawl.
 
         @ Link prüfen: Check Link
+        @ Ungesetzter Link bedeutet Ende erreicht  Unset Link means end of dictionary detected.
 
-        .ifdef m0core
-        ldr r0, =-1
-        cmp r2, r0
-        .else
-        cmp r2, #-1    @ Ungesetzter Link bedeutet Ende erreicht  Unset Link means end of dictionary detected.
-        .endif
-        beq 3f        @ Link=0xFFFFFFFF bedeutet: Fadenende erreicht.  Link=-1 means: End of dictionary reached.
+        adds r0, r2, #1 @ -1 + 1 = 0
+        beq 3f          @ Link=0xFFFFFFFF bedeutet: Fadenende erreicht.  Link=-1 means: End of dictionary reached.
 
         @ Link folgen  Follow the Link:
         movs r0, r2
@@ -954,4 +978,4 @@ find: @ ( str -- Code-Adresse Flags )
              @ Zieladresse    oder 0, falls nichts gefunden            Address = 0 means: Not found. Check for that !
   pushda r3  @ Zielflags      oder 0  --> @ ( 0 0 - Nicht gefunden )   Push Flags on Stack. ( Destination-Code Flags ) or ( 0 0 ).
 
-  pop {r0, r1, r2, r3, r4, pc}
+  pop {r0, r1, r2, r3, r4, r5, pc}

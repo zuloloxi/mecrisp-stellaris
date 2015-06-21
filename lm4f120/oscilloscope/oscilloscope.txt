@@ -294,7 +294,7 @@ $E000E10C constant en3 ( Interrupt Set Enable )
   cr ." Sampling: Wait for trigger - press a key"
 
   start  
-    begin ?key until
+    begin key? until
     \ begin risingedge-ch1 until
   stop
 

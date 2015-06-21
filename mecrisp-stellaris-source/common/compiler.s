@@ -36,14 +36,14 @@ tick: @ Nimmt das nächste Token aus dem Puffer, suche es und gibt den Einsprung
 @ -----------------------------------------------------------------------------
   push {lr}
   bl token @ Hole den Namen der neuen Definition.  Fetch Name
-  @ ( Tokenadresse )
+  @ ( Tokenadresse Länge )
 
   @ Überprüfe, ob der Token leer ist.
   @ Das passiert, wenn der Eingabepuffer nach create leer ist.
 
-  popda r0       @ Check if token is empty. Maybe input buffer is exhausted after Tick...
-  ldrb r1, [r0]
-  cmp r1, #0
+  popda r2       @ Length
+  popda r3       @ Address
+  cmp r2, #0     @ Check if token is empty. Maybe input buffer is exhausted after Tick...
   bne 1f
 
     @ Token ist leer. Brauche Stacks nicht zu putzen.
@@ -51,18 +51,20 @@ tick: @ Nimmt das nächste Token aus dem Puffer, suche es und gibt den Einsprung
 
 1:@ Tokenname ist okay.
   @ Prüfe, ob es schon existiert.
-  pushda r0
+  pushda r3
+  pushda r2
   bl find
   @ ( Einsprungadresse Flags )
   drop @ Benötige die Flags hier nicht. Möchte doch nur schauen, ob es das Wort schon gibt.
   @ ( Einsprungadresse )  No need for Flags here. Just check if it is found and give back its code entry address.
   cmp tos, #0
   bne 2f
+
 nicht_gefunden:
-    ldr r0, =Tokenpuffer
-    pushda r0
-    bl type
-    Fehler_Quit " not found."
+  pushda r3
+  pushda r2
+  bl stype
+  Fehler_Quit " not found."
 
 2:@ Gefunden, alles gut
   pop {pc}
@@ -75,7 +77,10 @@ nicht_gefunden:
   push {lr}
 
   bl token
-  @ ( Pufferadresse )
+  @ ( Adresse Länge )
+  movs r2, tos
+  ldr r3, [psp]
+
   bl find
   @ ( Einsprungadresse Flags )
   popda r0 @ Flags holen  Fetch Flags
@@ -178,7 +183,7 @@ suchedefinitionsende: @ Rückt den Pointer in r0 ans Ende einer Definition vor.
 
 @ -----------------------------------------------------------------------------
   Wortbirne Flag_visible, "ret," @ ( -- )
-retkomma: @ Write pop [pc} opcode
+retkomma: @ Write pop {pc} opcode
 @ -----------------------------------------------------------------------------
   @ Mache das mit pop {pc}
   pushdaconstw 0xbd00 @ Opcode für pop {pc} schreiben
@@ -247,13 +252,15 @@ fadenende_einsprungadresse: @ Kleines Helferlein spart Platz
   @ r0 enthält jetzt die Codestartadresse der aktuellen Definition.
   pushda r0
   pop {r0, r1, r2, r3, pc}
- 
+
 @ -----------------------------------------------------------------------------
-  Wortbirne Flag_foldable_0, "state" @ ( -- addr )
+  Wortbirne Flag_visible|Flag_variable, "state" @ ( -- addr )
+  CoreVariable state
 @ -----------------------------------------------------------------------------
   pushdatos
   ldr tos, =state
   bx lr
+  .word 0
 
 @------------------------------------------------------------------------------
   Wortbirne Flag_visible, "]" @ In den Compile-Modus übergehen  Switch to compile mode

@@ -64,5 +64,5 @@ PORTC_BASE $24 + constant PORTC_AFRH     \ Reset 0 Alternate function high regis
     button? if    true led  500000 0 do loop false led  500000 0 do loop
             else  true led 1000000 0 do loop false led 1000000 0 do loop
             then
-  ?key until
+  key? until
 ;

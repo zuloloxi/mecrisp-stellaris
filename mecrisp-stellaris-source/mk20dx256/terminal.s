@@ -183,7 +183,7 @@ serial_key: @ ( -- c ) Receive one character
    pop {pc}
 
 @ -----------------------------------------------------------------------------
-  Wortbirne Flag_visible, "serial-?emit"
+  Wortbirne Flag_visible, "serial-emit?"
 serial_qemit:  @ ( -- ? ) Ready to send a character ?
 @ -----------------------------------------------------------------------------
    push {lr}
@@ -206,7 +206,7 @@ serial_qemit:  @ ( -- ? ) Ready to send a character ?
 1: pop {pc}
 
 @ -----------------------------------------------------------------------------
-  Wortbirne Flag_visible, "serial-?key"
+  Wortbirne Flag_visible, "serial-key?"
 serial_qkey:  @ ( -- ? ) Is there a key press ?
 @ -----------------------------------------------------------------------------
    push {lr}

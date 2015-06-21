@@ -43,7 +43,7 @@
     .equ USART1EN, 0x4000
 
   .equ Terminal_USART_Base, 0x40013800 @ USART 1
-  .include "../common/stm-terminal.s"  @ Common STM terminal code for emit, key and ?key
+  .include "../common/stm-terminal.s"  @ Common STM terminal code for emit, key and key?
 
 @ -----------------------------------------------------------------------------
 uart_init:

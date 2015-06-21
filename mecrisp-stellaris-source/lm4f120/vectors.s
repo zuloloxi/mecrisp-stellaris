@@ -50,7 +50,7 @@
 .word irq_vektor_portc+1   @ 18: GPIO Port C
 .word irq_vektor_portd+1   @ 19: GPIO Port D
 .word irq_vektor_porte+1   @ 20: GPIO Port E
-.word nullhandler+1   @ 21: UART0 Rx and Tx
+.word irq_vektor_terminal+1   @ 21: UART0 Rx and Tx
 .word nullhandler+1   @ 22: UART1 Rx and Tx
 .word nullhandler+1   @ 23: SSI0 Rx and Tx
 .word nullhandler+1   @ 24: I2C0 Master and Slave

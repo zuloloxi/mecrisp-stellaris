@@ -27,9 +27,6 @@
 0 variable maximum
 0 variable minimum
 
-: spaces 0 ?do space loop ;
-: 2dup over over ;
-
 : plotline ( Channel1 Channel2 -- )
 
   minimum @ - 80 * maximum @ minimum @ -  \ 80 characters wide line plot

@@ -33,7 +33,7 @@
   cr
   dictionarystart 
   begin
-    dup 6 + type space
+    dup 6 + ctype space
     dictionarynext
   until
   drop
@@ -54,7 +54,7 @@
 \ --------------------------------------------------
 
 : disasm-string ( -- ) \ Takes care of an inline string
-  disasm-$ @ dup type skipstring disasm-$ !
+  disasm-$ @ dup ctype skipstring disasm-$ !
 ;
 
 : name. ( Address -- ) \ If the address is Code-Start of a dictionary word, it gets named.
@@ -63,15 +63,16 @@
   >r
   dictionarystart
   begin
-    dup   6 + dup skipstring r@ = if ."   --> " type else drop then
+    dup   6 + dup skipstring r@ = if ."   --> " ctype else drop then
     dictionarynext
   until
   drop
   r> 
 
   case \ Check for inline strings ! They are introduced by calls to ." or s" internals.
-    ['] ." $2C + of ."   -->  .' " disasm-string ." '" endof \ It is ." runtime ?
-    ['] s" $24 + of ."   -->  s' " disasm-string ." '" endof \ It is .s runtime ?
+    ['] ." $1E + of ."   -->  .' " disasm-string ." '" endof \ It is ." runtime ?
+    ['] s"  $4 + of ."   -->  s' " disasm-string ." '" endof \ It is .s runtime ?
+    ['] c"  $4 + of ."   -->  c' " disasm-string ." '" endof \ It is .c runtime ?
   endcase
 ;
 

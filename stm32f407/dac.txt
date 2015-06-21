@@ -56,5 +56,5 @@ DAC_Base $20 + constant DAC_DHR12RD
   begin
     $1000 0 do  i          $FFF i - dacs loop
     $1000 0 do  $FFF i -   i        dacs loop
-  ?key until
+  key? until
 ;

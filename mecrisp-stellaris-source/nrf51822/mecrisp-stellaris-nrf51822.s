@@ -74,7 +74,7 @@ Restart:
    @ Catch the pointers for Flash dictionary
    .include "../common/catchflashpointers.s"
  
-   writeln "Mecrisp-Stellaris 1.1 by Matthias Koch"
+   welcome " with M0 core by Matthias Koch"
    writeln "Modified for nRF51822 by John Huberts (JIB)"
 
    @ Ready to fly ! 

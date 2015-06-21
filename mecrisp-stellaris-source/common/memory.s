@@ -486,3 +486,15 @@ move:  @ ( Quelladdr Zieladdr Byteanzahl -- ) ( Source Destination Count -- )
   movne tos, #-1 @ Bleibt etwas über, mache ein ordentliches true-Flag daraus.
   bx lr
   .endif
+
+@ -----------------------------------------------------------------------------
+  Wortbirne Flag_inline|Flag_foldable_1, "cell+" @ ( x -- x+4 ) 
+@ -----------------------------------------------------------------------------
+  adds tos, #4
+  bx lr
+
+@ -----------------------------------------------------------------------------
+  Wortbirne Flag_inline|Flag_foldable_1, "cells" @ ( x -- 4*x ) 
+@ -----------------------------------------------------------------------------
+  lsls tos, #2
+  bx lr

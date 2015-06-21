@@ -77,5 +77,5 @@ PORTC_BASE $00 + constant PORTC_MODER    \ Reset 0 Port Mode Register - 00=Input
   %11 1 2* lshift portc_moder bis! \ Switch PC1 to analog mode
   begin 
     11 analog u. cr
-  ?key until 
+  key? until 
 ;

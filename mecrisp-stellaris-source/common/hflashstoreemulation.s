@@ -21,7 +21,7 @@
 
 
 @ Einfügen im Hauptteil: ramallot Sammeltabelle, Sammelstellen * 6
-.equ Sammelstellen, 32 @ 32 * 6 = 192 Bytes.
+@ .equ Sammelstellen, 32 @ 32 * 6 = 192 Bytes.
 
 @ -----------------------------------------------------------------------------
 @  Wortbirne Flag_visible, "stleeren" @ Zu Beginn und in Quit !

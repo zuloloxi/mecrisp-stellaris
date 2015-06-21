@@ -20,6 +20,42 @@
 @ Interpreter and optimisations
 
 @ -----------------------------------------------------------------------------
+  Wortbirne Flag_visible, "evaluate" @ ( -- )
+@ -----------------------------------------------------------------------------
+  push {lr}
+  bl source             @ Save current source
+  
+  @ 2>r
+  ldm psp!, {r0}
+  push {r0}
+  push {tos}
+  ldm psp!, {tos}
+
+  ldr r0, =Pufferstand  @ Save >in and set to zero
+  ldr r1, [r0]
+  push {r1}
+  movs r1, #0
+  str r1, [r0]
+
+  bl setsource          @ Set new source
+  bl interpret          @ Interpret
+
+  ldr r0, =Pufferstand  @ Restore >in
+  pop {r1}
+  str r1, [r0]
+
+  @ 2r>
+  pushdatos
+  pop {tos}
+  pop {r0}
+  subs psp, #4
+  str r0, [psp]
+
+  bl setsource          @ Restore old source
+
+  pop {pc}
+
+@ -----------------------------------------------------------------------------
   Wortbirne Flag_visible, "interpret" @ ( -- )
 interpret:
 @ -----------------------------------------------------------------------------
@@ -43,20 +79,7 @@ interpret:
 
 3: @ Alles ok.  Stacks are fine.
 
-  bl token
-  @ Prüfe, ob der String leer ist  Check if token is empty - that designates an empty input buffer.
-  popda r0        @ Stringadresse holen
-  ldrb r1, [r0]   @ Länge des Strings holen
-  cmp r1, #0
-  bne.n 2f
-    pop {r4, r5, pc}
-
 @ -----------------------------------------------------------------------------
-2:@ String aus Token angekommen.  We have a string to interpret.
-  @ ( -- )
-
-  @ Registerkarte:
-  @  r0: Stringadresse des Tokens  Address of string
 
   @ Konstantenfaltungszeiger setzen, falls er das noch nicht ist.
   @ Set Constant-Folding-Pointer
@@ -70,22 +93,35 @@ interpret:
     str r5, [r4]
 3:
 
+@ -----------------------------------------------------------------------------
+  bl token
+  @ ( Address Length )
+
+  @ Prüfe, ob der String leer ist  Check if token is empty - that designates an empty input buffer.
+  cmp tos, #0
+  bne.n 2f
+    ddrop
+    pop {r4, r5, pc}
+2:
+
+@ -----------------------------------------------------------------------------
+  @ String aus Token angekommen.  We have a string to interpret.
+  @ ( Address Length )
+
   @ Registerkarte:
-  @  r0: Stringadresse des Tokens               Address of string
   @  r4: Adresse des Konstantenfaltungszeigers  Address of constant folding pointer
   @  r5: Konstantenfaltungszeiger               Constant folding pointer
 
-
-  @ ( -- )
-  pushda r0 @ Stringadresse bereitlegen  Put string address on datastack
+  ddup
   bl find @ Probe, ob es sich um ein Wort aus dem Dictionary handelt:  Attemp to find token in dictionary.
-  @ ( Addr Flags )
+  @ ( Token-Addr Token-Length Addr Flags )
+
   popda r1 @ Flags
-  popda r2 @ Addr
-  @ ( -- )
+  popda r2 @ Einsprungadresse
+
+  @ ( Token-Addr Token-Length )
 
   @ Registerkarte:
-  @  r0: Stringadresse des Tokens               Address of string
   @  r1: Flags                                  Flags
   @  r2: Einsprungadresse                       Code entry point
   @  r4: Adresse des Konstantenfaltungszeigers  Address of constant folding pointer
@@ -95,7 +131,10 @@ interpret:
   bne.n 4f
     @ Nicht gefunden. Ein Fall für Number.
     @ Entry-Address is zero if not found ! Note that Flags have very special meanings in Mecrisp !
-    pushda r0
+
+    ldr r0, [psp]
+    movs r1, tos
+
     bl number
 
   @ Number gives back ( 0 ) or ( x 1 ).
@@ -105,16 +144,25 @@ interpret:
 
     popda r2   @ Flag von Number holen
     cmp r2, #0 @ Did number recognize the string ?
-    bne.n 1b     @ Zahl gefunden, alles gut. Interpretschleife fortsetzen.  Finished.
+    bne.n 1b   @ Zahl gefunden, alles gut. Interpretschleife fortsetzen.  Finished.
 
     @ Number mochte das Token auch nicht.
     pushda r0
-    bl type
+    pushda r1
+    bl stype
     Fehler_Quit_n " not found."
 
 @ -----------------------------------------------------------------------------
 4:@ Token im Dictionary gefunden. Found token in dictionary. Decide what to do.
-  @ ( -- )
+
+  @ ( Token-Addr Token-Length )
+
+  @ Registerkarte:
+  @  r1: Flags                                  Flags
+  @  r2: Einsprungadresse                       Code entry point
+  @  r4: Adresse des Konstantenfaltungszeigers  Address of constant folding pointer
+  @  r5: Konstantenfaltungszeiger               Constant folding pointer
+
   ldr r3, =state
   ldr r3, [r3]
   cmp r3, #0
@@ -127,12 +175,11 @@ interpret:
     ands r3, r1
     cmp r3, #Flag_immediate_compileonly
     bne.n .ausfuehren
-
-      pushda r0
-      bl type
+      bl stype
       Fehler_Quit_n " is compile-only."
 
 .ausfuehren:
+    ddrop
     pushda r2    @ Adresse zum Ausführen   Code entry point
     bl execute   @                         Execute it
     bl 1b @ Interpretschleife fortsetzen.  Finished.
@@ -149,6 +196,7 @@ interpret:
 
 @ -----------------------------------------------------------------------------
 5:@ Im Kompilierzustand.  In compile state.
+    ddrop
 
     @ Prüfe das Ramallot-Flag, das automatisch 0-faltbar bedeutet:
     @ Ramallot-Words always are 0-foldable !
@@ -546,8 +594,18 @@ quit:
   str r1, [r0]
 
   ldr r0, =konstantenfaltungszeiger
-  movs r1, #0    @ Clear constant folding pointer
+  @ movs r1, #0  @ Clear constant folding pointer
   str r1, [r0]
+
+  ldr r0, =Pufferstand
+  @ movs r1, #0  @ Set >IN to 0
+  str r1, [r0]
+
+  ldr r0, =current_source 
+  @ movs r1, #0  @ Empty TIB is source
+  str r1, [r0]
+  ldr r1, =Eingabepuffer
+  str r1, [r0, #4]
 
 quit_intern:
   ldr r0, =hook_quit

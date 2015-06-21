@@ -37,7 +37,7 @@
   .word serial_key  @ Serial communication for default
 
 @------------------------------------------------------------------------------
-  Wortbirne Flag_visible|Flag_variable, "hook-?emit" @ ( -- addr )
+  Wortbirne Flag_visible|Flag_variable, "hook-emit?" @ ( -- addr )
   CoreVariable hook_qemit
 @------------------------------------------------------------------------------  
   pushdatos
@@ -46,7 +46,7 @@
   .word serial_qemit  @ Serial communication for default
 
 @------------------------------------------------------------------------------
-  Wortbirne Flag_visible|Flag_variable, "hook-?key" @ ( -- addr )
+  Wortbirne Flag_visible|Flag_variable, "hook-key?" @ ( -- addr )
   CoreVariable hook_qkey
 @------------------------------------------------------------------------------  
   pushdatos
@@ -82,7 +82,7 @@ key:
   pop {r0, r1, r2, r3, pc}
 
 @------------------------------------------------------------------------------
-  Wortbirne Flag_visible, "?emit" @ ( -- ? )
+  Wortbirne Flag_visible, "emit?" @ ( -- ? )
 @------------------------------------------------------------------------------  
   push {lr} @ Not used in core, no need to save registers
   ldr r0, =hook_qemit
@@ -90,7 +90,7 @@ key:
   pop {pc}
 
 @------------------------------------------------------------------------------
-  Wortbirne Flag_visible, "?key" @ ( -- ? )
+  Wortbirne Flag_visible, "key?" @ ( -- ? )
 @------------------------------------------------------------------------------  
   push {lr} @ Not used in core, no need to save registers
   ldr r0, =hook_qkey

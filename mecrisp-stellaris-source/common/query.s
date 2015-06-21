@@ -19,8 +19,22 @@
 @ Input routine Query - with Unicode support.
 
 @ -----------------------------------------------------------------------------
-  Wortbirne Flag_visible, "expect" @ ( c-addr maxlength ) Collecting your keystrokes !
-expect: @ Nimmt einen String entgegen und legt ihn in einen Puffer.
+  Wortbirne Flag_visible, "cexpect" @ ( cstr-addr maxlength ) Collecting your keystrokes into a counted string !
+@ -----------------------------------------------------------------------------
+  push {lr}
+  ldr r0, [psp]  @ Fetch address
+  push {r0}
+  adds r0, #1    @ Add one to skip length byte for accept area
+  str r0, [psp]
+  bl accept
+  pop {r0}
+  strb tos, [r0] @ Store accepted length into length byte of counted string
+  drop
+  pop {pc}
+
+@ -----------------------------------------------------------------------------
+  Wortbirne Flag_visible, "accept" @ ( c-addr maxlength -- length ) Collecting your keystrokes !
+accept: @ Nimmt einen String entgegen und legt ihn in einen Puffer.
 @ -----------------------------------------------------------------------------
         push    {lr}
 
@@ -32,6 +46,7 @@ expect: @ Nimmt einen String entgegen und legt ihn in einen Puffer.
         @ tos:Längengrenze     Maximum length
 
         ldm psp!, {r1}          @ Pufferadresse holen                 Fetch buffer address
+        subs r1, #1             @ Einen abziehen, weil die Routine bislang eigentlich abgezählte Strings erwartet hat.
         movs r2, #0             @ Momentaner Pufferfüllstand Null     Currently zero characters typed
 
 1:      @ Queryschleife  Collcting loop
@@ -86,9 +101,7 @@ expect: @ Nimmt einen String entgegen und legt ihn in einen Puffer.
 
       @ Hole das letzte Zeichen und schneide es ab.
       @ Fetch character from the end and cut it off.
-      movs    r3, r1            @ Pufferadresse kopieren
-      adds    r3, r2            @ Füllstand hinzuaddieren
-      ldrb    r0, [r3]          @ Letztes Zeichen im Puffer holen
+      ldrb    r0, [r1, r2]      @ Letztes Zeichen im Puffer holen
       subs    r2, #1            @  und abschneiden
 
       @ Teste das Zeichen auf Unicode, oberstes Bit gesetzt ?
@@ -121,15 +134,12 @@ expect: @ Nimmt einen String entgegen und legt ihn in einen Puffer.
         pushda r0
         bl emit                   @ Zeichen ausgeben
         adds    r2, #1            @ Pufferfüllstand erhöhen
-        movs    r3, r1            @ Pufferadresse kopieren
-        adds    r3, r2            @ Füllstand hinzuaddieren
-        strb    r0, [r3]          @ Zeichen in Puffer speichern
+        strb    r0, [r1, r2]      @ Zeichen in Puffer speichern
         b       1b
 
 3:      @ Return has been pressed: Store string length, print space and leave.
-        strb    r2, [r1]          @ Pufferfüllstand schreiben
+        movs tos, r2              @ Give back accepted length
         bl space                  @ Statt des Zeilenumbruches ein Leerzeichen ausgeben
-        drop                      @ Forget maximum input length
         pop {pc}
 
 @ -----------------------------------------------------------------------------
@@ -141,10 +151,47 @@ tib:
   bx lr
 
 @ -----------------------------------------------------------------------------
-  Wortbirne Flag_foldable_0, ">in" @ ( -- addr )
+  Wortbirne Flag_visible|Flag_variable, ">in" @ ( -- addr )
+  CoreVariable Pufferstand
 @ -----------------------------------------------------------------------------
   pushdatos
   ldr tos, =Pufferstand
+  bx lr
+  .word 0
+
+@------------------------------------------------------------------------------
+  Wortbirne Flag_visible|Flag_2variable, "current-source" @ ( -- addr )
+  DoubleCoreVariable current_source
+@------------------------------------------------------------------------------  
+  pushdatos
+  ldr tos, =current_source
+  bx lr
+  .word 0              @ Empty TIB for default
+  .word Eingabepuffer
+
+
+@ -----------------------------------------------------------------------------
+  Wortbirne Flag_visible, "setsource" @ ( c-addr len -- )
+setsource:
+@ -----------------------------------------------------------------------------
+  ldr r0, =current_source
+  ldm psp!, {r1}
+  str tos, [r0]
+  str r1, [r0, #4]
+  drop
+  bx lr
+
+@ -----------------------------------------------------------------------------
+  Wortbirne Flag_visible, "source" @ ( c-addr len -- )
+source:
+@ -----------------------------------------------------------------------------
+  pushdatos
+  ldr tos, =current_source
+
+  subs psp, #4        @ Opcodes for 2@
+  ldr r0, [tos, #4]
+  str r0, [psp]
+  ldr tos, [tos]
   bx lr
 
 @ -----------------------------------------------------------------------------
@@ -155,11 +202,13 @@ query: @ ( -- ) Nimmt einen String in den Eingabepuffer auf
 
   ldr r0, =Pufferstand @ Aktueller Offset in den Eingabepuffer  Zero characters consumed yet
   movs r1, #0
-  strb r1, [r0]
+  str r1, [r0]
 
   bl tib
-  pushdaconst maximaleeingabe
-
-  bl expect
-
+  dup
+  pushdaconst Maximaleeingabe
+  bl accept
+  bl setsource
+  
   pop {r0, r1, r2, r3, pc}
+  .ltorg

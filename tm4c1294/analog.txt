@@ -154,7 +154,7 @@ $40038FC8 constant ADC0_CC           \ Clock configuration
   5 0 do random hex. loop
 ;
 
-: measure-a0 ( -- ) 120MHz init-analog init-ain0 begin 0 analog u. 5 spaces temperature u. cr ?key until ;
+: measure-a0 ( -- ) 120MHz init-analog init-ain0 begin 0 analog u. 5 spaces temperature u. cr key? until ;
 
 : all-analogs ( -- )
   120MHz init-analog
@@ -165,5 +165,5 @@ $40038FC8 constant ADC0_CC           \ Clock configuration
 
   begin
     20 0 do i analog hex. loop cr
-  ?key until
+  key? until
 ;

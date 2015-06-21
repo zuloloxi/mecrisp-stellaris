@@ -495,6 +495,28 @@ literalkomma: @ Nur r3 muss erhalten bleiben  Save r3 !
 
   pop {r3, pc}
 
+@ -----------------------------------------------------------------------------
+  Wortbirne Flag_visible, "create" @ ANS-Create with default action.
+@ -----------------------------------------------------------------------------
+  push {lr}
+  bl builds
+
+  @ Copy of the inline-code of does>
+
+  @ Universeller Sprung zu dodoes:  Universal jump to dodoes. There has already been a push {lr} before in the definition that calls does>.
+  @ Davor ist in dem Wort, wo does> eingefügt wird schon ein push {lr} gewesen.
+  movw r0, #:lower16:dodoes+1
+  @  movt r0, #:upper16:dodoes+1   Dieser Teil ist Null, da dodoes weit am Anfang des Flashs sitzt.  Not needed as dodoes in core is in the lowest 64 kb.
+  blx r0 @ Den Aufruf mit absoluter Adresse einkompilieren. Perform this call with absolute addressing.
+
+
+    @ Die Adresse ist hier nicht auf dem Stack, sondern in LR. LR ist sowas wie "TOS" des Returnstacks.
+    @ Address is in LR which is something like "TOS in register" of return stack.
+
+  pushdatos
+  subs tos, lr, #1 @ Denn es ist normalerweise eine ungerade Adresse wegen des Thumb-Befehlssatzes.  Align address. It is uneven because of Thumb-instructionset bit set.
+
+  pop {pc}
 
 @------------------------------------------------------------------------------
   Wortbirne Flag_inline, "does>"
@@ -577,7 +599,7 @@ dodoes:
 
 @ -----------------------------------------------------------------------------
   Wortbirne Flag_visible, "<builds"
-        @ Beginnt ein Defining-Wort.  Start a defining definition.
+builds: @ Beginnt ein Defining-Wort.  Start a defining definition.
         @ Dazu lege ich ein neues Wort an, lasse eine Lücke für den Call-Befehl. Create a new definition and leave space for inserting the does>-Call later.
         @ Keine Strukturkennung  No structure pattern matching here !
 @ -----------------------------------------------------------------------------

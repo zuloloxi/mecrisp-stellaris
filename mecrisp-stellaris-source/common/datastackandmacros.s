@@ -199,6 +199,18 @@ irq_vektor_\Name:
   pop {tos}
 .endm
 
+.macro ddup
+  ldr r0, [psp]
+  pushdatos
+  subs psp, #4
+  str r0, [psp]
+.endm
+
+.macro ddrop
+  adds psp, #4
+  drop
+.endm
+
 @ -----------------------------------------------------------------------------
 @ Flagdefinitionen
 @ Flag definitions
@@ -213,6 +225,7 @@ irq_vektor_\Name:
 
 .equ Flag_ramallot,   0x00000080      @ Ramallot means that RAM is reserved and initialised by catchflashpointers for this definition on startup
 .equ Flag_variable,   Flag_ramallot|1 @ How many 32 bit locations shall be reserved ?
+.equ Flag_2variable,  Flag_ramallot|2
 
 .equ Flag_foldable,   0x00000040 @ Foldable when given number of constants are available.
 .equ Flag_foldable_0, 0x00000040
@@ -253,6 +266,11 @@ irq_vektor_\Name:
 @ For initialised variables at the end of RAM-Dictioanary that are recognized by catchflashpointers
 .macro CoreVariable, Name @  Benutze den Mechanismus, um initialisierte Variablen zu erhalten.
   .set CoreVariablenPointer, CoreVariablenPointer - 4
+  .equ \Name, CoreVariablenPointer
+.endm
+
+.macro DoubleCoreVariable, Name @  Benutze den Mechanismus, um initialisierte Variablen zu erhalten.
+  .set CoreVariablenPointer, CoreVariablenPointer - 8
   .equ \Name, CoreVariablenPointer
 .endm
 
@@ -325,6 +343,14 @@ irq_vektor_\Name:
   bl dotgaensefuesschen 
         .byte 8f - 7f         @ Compute length of name field.
 7:      .ascii "\Meldung\n"
+8:      .p2align 1
+.endm
+
+.macro welcome Meldung
+  bl dotgaensefuesschen 
+        .byte 8f - 7f         @ Compute length of name field.
+7:      .ascii "Mecrisp-Stellaris 2.0.0"
+        .ascii "\Meldung\n"
 8:      .p2align 1
 .endm
 

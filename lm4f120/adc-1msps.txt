@@ -190,7 +190,7 @@ $E000E10C constant en3 ( Interrupt Set Enable )
 
   cr
   ." Sampling: Wait for trigger - press a key"
-  begin ?key until
+  begin key? until
 
   0 ADC0_ACTSS !      \ Disable Sample Sequencers
   10000 0 do loop     \ Wait until current sampling is finished and Interrupts calmed down

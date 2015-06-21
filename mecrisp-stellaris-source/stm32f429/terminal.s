@@ -43,7 +43,7 @@
     .equ HSEON         ,   BIT16
 
   .equ Terminal_USART_Base, 0x40011000 @ USART 1
-  .include "../common/stm-terminal.s"  @ Common STM terminal code for emit, key and ?key
+  .include "../common/stm-terminal.s"  @ Common STM terminal code for emit, key and key?
 
 @ -----------------------------------------------------------------------------
 Setup_Clocks:

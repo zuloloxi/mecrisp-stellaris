@@ -133,5 +133,5 @@ PORTG_BASE $24 + constant PORTG_AFRH     \ Reset 0 Alternate function high regis
    false led-red-bottom
    200 ms
 
-   ?key until
+   key? until
 ;

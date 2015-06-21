@@ -26,13 +26,10 @@
 
 .set rampointer, RamAnfang  @ Ram-Anfang setzen  Set location for core variables.
 
-@ Variablen des Kerns  Variables of core
+@ Variablen des Kerns  Variables of core that are not visible
 
-ramallot Pufferstand, 4
 ramallot Dictionarypointer, 4
 ramallot Fadenende, 4
-ramallot state, 4
-ramallot base, 4
 ramallot konstantenfaltungszeiger, 4
 ramallot leavepointer, 4
 ramallot Datenstacksicherung, 4
@@ -46,13 +43,11 @@ ramallot VariablenPointer, 4
 
 @ Jetzt kommen Puffer und Stacks:  Buffers and Stacks
 
-@ Idee für die Speicherbelegung: 12*4 + 64 + 200 + 256 + 256 + 200 = 1024 Bytes
-
 .equ Zahlenpufferlaenge, 63 @ Zahlenpufferlänge+1 sollte durch 4 teilbar sein !      Number buffer (Length+1 mod 4 = 0)
 ramallot Zahlenpuffer, Zahlenpufferlaenge+1 @ Reserviere mal großzügig 64 Bytes RAM für den Zahlenpuffer
 
-.equ maximaleeingabe,    199 @ Eingabepufferlänge+1 sollte durch 4 teilbar sein !    Input buffer  (Length+1 mod 4 = 0)
-ramallot Eingabepuffer, maximaleeingabe+1 @ Länge des Pufferinhaltes + 1 Längenbyte !
+.equ Maximaleeingabe,    200             @ Input buffer for an Address-Length string
+ramallot Eingabepuffer, Maximaleeingabe  @ Eingabepuffer wird einen Adresse-Länge String enthalten
 
 ramallot datenstackende, 256  @ Data stack
 ramallot datenstackanfang, 0
@@ -60,9 +55,8 @@ ramallot datenstackanfang, 0
 ramallot returnstackende, 256  @ Return stack
 ramallot returnstackanfang, 0
 
-ramallot Tokenpuffer, maximaleeingabe+1  @ Token buffer, same length as Input buffer
-
 .ifdef emulated16bitflashwrites
+  .equ Sammelstellen, 32 @ 32 * 6 = 192 Bytes.
   ramallot Sammeltabelle, Sammelstellen * 6 @ 16-Bit Flash write emulation collection buffer
 .endif
 

@@ -230,14 +230,8 @@ words: @ Malt den Dictionaryinhalt
 
         @ Link prüfen:
 
-        .ifdef m0core
-        ldr r0, =-1
-        cmp r2, r0
-        .else
-        cmp r2, #-1    @ Ungesetzter Link bedeutet Ende erreicht  Unset Link means end of dictionary detected.
-        .endif
-
-        beq 2f         @ Link=-1 means: End of dictionary reached.
+        adds r0, r2, #1 @ -1 + 1 = 0  Ungesetzter Link bedeutet Ende erreicht  Unset Link means end of dictionary detected.
+        beq 2f          @ Link=-1 means: End of dictionary reached.
 
         @ Link folgen
         movs r0, r2

@@ -18,7 +18,7 @@ $4000551C constant PORTB_DEN  ( Digital Enable )
 decimal
 
 
-: Sendedatenholen ( -- Daten true | false ) ?key if key dup emit true else false then ;
+: Sendedatenholen ( -- Daten true | false ) key? if key dup emit true else false then ;
 : Datenempfangen  ( Daten -- ) emit ;
 : Verbindungsanfang ( -- ) ."  (Up) "      ; \ Verbindungsanzeige nach Bedarf anpassen
 : Verbindungsende   ( -- ) ."  (Down) " cr ;

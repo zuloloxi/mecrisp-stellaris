@@ -75,7 +75,7 @@ Restart:
    @ Catch the pointers for Flash dictionary
    .include "../common/catchflashpointers.s"
 
-   writeln "Mecrisp-Stellaris 1.1 with M0 core for STM32F051 by Matthias Koch"
+   welcome " with M0 core for STM32F051 by Matthias Koch"
 
    @ Ready to fly !
    .include "../common/boot.s"

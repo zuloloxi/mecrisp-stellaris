@@ -198,3 +198,55 @@
       Port for Nordic nRF51822
   - Contribution by Bernd Paysan:
       Ethernet drivers for TM4C1294
+
+30.06.2014, Matthias Koch, Mecrisp-Stellaris 2.0.0
+
+  - Big changes in string handling !
+    The new core is now a lot more ANS aligned and handles addr-length strings.
+  - Renamed ?key in key? and ?emit in emit?
+  - Renamed old counted-string handling with c-prefix
+  - Create now has default action equivalent to : create <builds does> ;
+    Old behaviour is renamed into (create)
+  - Added irq-terminal to LM4F120 and TM4C1294 targets
+  - Changed disassemblers and examples for new string handling
+
+  Simply renamed with same function:
+     ?key          --> key?
+     ?emit         --> emit?
+     serial-?key   --> serial-key?
+     serial-?emit  --> serial-emit?
+     hook-?key     --> hook-key?
+     hook-?emit    --> hook-emit?
+     expect        --> cexpect
+     create        --> (create)
+     type          --> ctype
+     s"            --> c"
+
+  Chanced behaviour:
+     string,
+     find
+     compare
+     number
+     token
+     parse
+     #>
+
+     s"
+     type
+     create
+
+  Freshly added:
+     cell+
+     cells
+     align
+     aligned
+     spaces
+     count
+     create
+     type
+     accept
+     evaluate
+     s"
+     current-source
+     setsource
+     source

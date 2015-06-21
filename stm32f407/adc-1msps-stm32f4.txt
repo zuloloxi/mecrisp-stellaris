@@ -190,7 +190,7 @@ PORTC_BASE $00 + constant PORTC_MODER    \ Reset 0 Port Mode Register - 00=Input
 
   cr
   ." Sampling: Wait for trigger - press a key"
-  begin ?key until
+  begin key? until
 
   0 ADC1_CR2 !      \ Disable ADC
   10000 0 do loop   \ Wait until current sampling is finished and Interrupts calmed down

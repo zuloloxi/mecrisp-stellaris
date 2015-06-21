@@ -18,24 +18,17 @@
 
 @ Common startup code for all implementations 
 
-   @ Genauso wie in quit. Hier nochmal, damit quit nicht nach dem Init-Einsprung nochmal tätig wird.
-   @ Exactly like the initialisations in quit. Here again because quit should not be executed after running "init".
-   ldr r0, =base
-   movs r1, #10
-   str r1, [r0]
-
-   ldr r0, =state
-   movs r1, #0
-   str r1, [r0]
+   @ Einige der Kernvariablen müssen hier unbedingt frisch gesetzt werden, damit quit nicht nach dem Init-Einsprung nochmal tätig werden muss.
 
    ldr r0, =konstantenfaltungszeiger
-   movs r1, #0
+   movs r1, #0    @ Clear constant folding pointer
    str r1, [r0]
 
    @ Suche nach der init-Definition:
    @ Search for current init definition in dictionary:
-   ldr r0, =init_name
-   pushda r0
+   pushdatos
+   ldr tos, =init_name
+   pushdaconst 4 
    bl find
    drop @ Flags brauche ich nicht No need for flags
    cmp tos, #0
@@ -47,6 +40,6 @@
    drop @ Die 0-Adresse von find. Wird hier heruntergeworfen, damit der Startwert AFFEBEEF erhalten bleibt !
    b.n quit @ Drop 0-address of find to keep magic TOS value intact.
 
-init_name: .byte 4, 105, 110, 105, 116, 0 @ "init"
+init_name: .byte 105, 110, 105, 116 @ "init"
 
 .ltorg @ Ein letztes Mal Konstanten schreiben

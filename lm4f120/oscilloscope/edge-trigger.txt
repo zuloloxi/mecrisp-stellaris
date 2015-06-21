@@ -40,7 +40,7 @@ buffermask 2/ variable triggerposition  \ For centered trigger
       begin risingedge-ch1 until
     stop
     plotwave cr
-  ?key until
+  key? until
 
   close-capture
 ;
@@ -54,7 +54,7 @@ buffermask 2/ variable triggerposition  \ For centered trigger
       begin fallingedge-ch1 until
     stop
     plotwave cr
-  ?key until
+  key? until
 
   close-capture
 ;

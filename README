@@ -17,7 +17,7 @@
 @
 
 ;------------------------------------------------------------------------------
-This is the second stable release of Mecrisp-Stellaris,
+This is the third stable release of Mecrisp-Stellaris,
 a port of Mecrisp to the ARM Cortex M architecture.
 
 It runs out of the box on:
@@ -241,7 +241,7 @@ contribution. It won't be too difficult, start with an UART echo written
 in assembly without libraries, and I will be there for your help.
 
 You have to change memory map, hardware initialisation and interrupt vectors,
-write ?key, key, emit for a first reaction and flash write access
+write key?, key, emit?, emit for a first reaction and flash write access
 for final success. There is a common mimimum set of handlers across 
 ARM Cortex CPUs, which will help you to get it running for the first time.
 
@@ -271,21 +271,21 @@ View it with fixed-width font !
 ;------------------------------------------------------------------------------
 
 ;------------------------------------------------------------------------------
-; Terminal-IO
+; Terminal-IO  (exactly ANS, some logical extensions)
 ;------------------------------------------------------------------------------
 
-        ?emit           ( -- Flag ) Ready to send a character ?
-        ?key            ( -- Flag ) Checks if a key is waiting
+        emit?           ( -- Flag ) Ready to send a character ?
+        key?            ( -- Flag ) Checks if a key is waiting
         key             ( -- Char ) Waits for and fetches the pressed key
         emit            ( Char -- ) Emits a character.
 
-        hook-?emit      ( -- a-addr ) Hooks for redirecting
-        hook-?key       ( -- a-addr )   terminal IO
+        hook-emit?      ( -- a-addr ) Hooks for redirecting
+        hook-key?       ( -- a-addr )   terminal IO
         hook-key        ( -- a-addr )     on the fly
         hook-emit       ( -- a-addr ) 
 
-        serial-?emit    ( -- Flag )  Serial interface
-        serial-?key     ( -- Flag )    terminal routines
+        serial-emit?    ( -- Flag )  Serial interface
+        serial-key?     ( -- Flag )    terminal routines
         serial-key      ( -- Char )      as default communications
         serial-emit     ( Char -- ) 
 
@@ -531,34 +531,51 @@ like signed double numbers.
         c+!             ( u|n a-addr -- ) Add to byte memory location
 
 ;------------------------------------------------------------------------------
-; Strings and beautiful output (subtle differences to ANS)
+; Strings and beautiful output (exactly ANS, some logical extensions)
 ;------------------------------------------------------------------------------
 
 String routines:
-        compare         ( cstr-addr-1 cstr-addr-2 -- flag )
-                        Compares two counted strings
 
-        skipstring      ( cstr-addr -- a-addr )
-                        Increases the pointer to the aligned end of the string.
-
-        expect          ( cstr-addr maxlength -- ) Read input into a string
-
-        type            ( cstr-addr -- )
+        type            ( c-addr length -- )
                         Prints a counted string.
 
         s" Hello"       Compiles a string and
-                        ( -- cstr-addr )
-                        gives back its address when executed.
+                        ( -- c-addr length )
+                        gives back its address and length when executed.
 
         ." Hello"       Compiles a string and
                         ( -- )
                         prints it when executed.
 
+        cr              ( -- ) Emits line feed
         bl              ( -- 32 ) ASCII code for Space
         space           ( -- ) Emits space
-        cr              ( -- ) Emits line feed
+        spaces          ( n -- ) Emits n spaces if n is positive
+
+        compare         ( caddr-1 len-1 c-addr-2 len-2 -- flag )
+                        Compares two strings
+
+        accept          ( c-addr maxlength -- length ) Read input into a string.
+
+Counted string routines:
+
+        ctype           ( cstr-addr -- )
+                        Prints a counted string.
+
+        c" Hello"       Compiles a counted string and
+                        ( -- cstr-addr )
+                        gives back its address when executed.
+
+        cexpect         ( cstr-addr maxlength -- ) Read input into a counted string.
+
+        count           ( cstr-addr -- c-addr length )
+                        Convert counted string into addr-length string
+
+        skipstring      ( cstr-addr -- a-addr )
+                        Increases the pointer to the aligned end of the string.
 
 Pictured numerical output:
+
         .digit          ( u -- char ) Converts a digit to a char
         digit           ( char -- u ) Converts a char to a digit
 
@@ -576,7 +593,7 @@ Pictured numerical output:
                         from the single length number to output buffer
         #               ( u1|n1 -- u2|n2 ) Add one digit from the
                         single length number to output buffer
-        #>              ( u|n -- cstr-addr )
+        #>              ( u|n -- c-addr len )
                         Drops number and finishes
                         pictured numeric output ready for type
         <#              ( -- ) Prepare pictured number output buffer
@@ -584,6 +601,7 @@ Pictured numerical output:
         .               ( n -- ) Print single number
 
 Deep insights:
+
         words           ( -- ) Prints list of defined words.
         .s              ( many -- many ) Prints stack contents, signed
         u.s             ( many -- many ) Prints stack contents, unsigned
@@ -594,29 +612,54 @@ Deep insights:
                                  This is independent of number subsystem.
 
 ;------------------------------------------------------------------------------
-; User input and its interpretation (more FIG style, speciality!)
+; User input and its interpretation (exactly ANS, some logical extensions)
 ;------------------------------------------------------------------------------
 
         query           ( -- ) Fetches user input to input buffer
         tib             ( -- cstr-addr ) Input buffer
-        >in             ( -- addr ) Variable with current offset into TIB
-        token           ( -- cstr-addr ) Cuts one token out of input buffer
-        parse           ( char -- cstr-addr )
+
+        current-source  ( -- addr ) Double-Variable which contains source
+        setsource       ( c-addr len -- ) Change source
+        source          ( -- c-addr len ) Current source
+        >in             ( -- addr ) Variable with current offset into source
+
+        token           ( -- c-addr len ) Cuts one token out of input buffer
+        parse           ( char -- c-addr len )
                         Cuts anything delimited by char out of input buffer
 
+        evaluate        ( any addr len -- any ) Interpret given string
         interpret       ( any -- any ) Execute, compile, fold, optimize...
         quit            ( many -- ) (R: many -- ) Resets Stacks
         hook-quit       ( -- a-addr ) Hook for changing the inner quit loop
 
 ;------------------------------------------------------------------------------
-; Dictionary expansion  (speciality!)
+; Dictionary expansion  (exactly ANS, some logical extensions)
 ;------------------------------------------------------------------------------
+
+        align           ( -- ) Aligns dictionary pointer
+        aligned         ( c-addr -- a-addr ) Advances to next aligned address
+        cell+           ( x -- x+4 ) Add size of one cell
+        cells           ( n -- 4*n ) Calculate size of n cells
+
+        allot           ( n -- ) Tries to advance Dictionary Pointer by n bytes
+                                 Aborts, if not enough space available
+        here            ( -- a-addr|c-addr )
+                        Gives current position in Dictionary
 
         ,               ( u|n -- ) Appends a single number to dictionary
         ><,             ( u|n -- ) Reverses high and low-halfword, then 
                                      appends it to dictionary
         h,              ( u|n -- ) Appends a halfword to dictionary
-        string,         ( cstr-addr -- ) Inserts a string without runtime
+
+        compiletoram?   ( -- ? ) Currently compiling into ram ?
+        compiletoram    ( -- ) Makes ram   the target for compiling
+        compiletoflash  ( -- ) Makes flash the target for compiling
+
+;------------------------------------------------------------------------------
+; Dictionary expansion  (speciality!)
+;------------------------------------------------------------------------------
+
+        string,         ( c-addr len -- ) Inserts a string of maximum 255 characters without runtime
         literal,        ( u|n -- ) Compiles a literal with runtime
         inline,         ( a-addr -- ) Inlines the choosen subroutine
         call,           ( a-addr -- ) Compiles a call to a subroutine
@@ -629,17 +672,9 @@ Deep insights:
                         to a-addr-Destination with the given Bitmask as
                         Opcode into the halfword sized a-addr-Hole
         ret,            ( -- ) Compiles a ret opcode
-        allot           ( n -- ) Tries to advance Dictionary Pointer by n bytes
-                                 Aborts, if not enough space available
-        here            ( -- a-addr|c-addr )
-                        Gives current position in Dictionary
+
         flashvar-here   ( -- a-addr ) Gives current RAM management pointer
         dictionarystart ( -- a-addr ) Current entry point for dictionary search
-
-        compiletoram?   ( -- ? ) Currently compiling into ram ?
-        compiletoram    ( -- ) Makes ram   the target for compiling
-        compiletoflash  ( -- ) Makes flash the target for compiling
-
   
     Available depending on chip capabilities:
 
@@ -670,10 +705,10 @@ Deep insights:
                                For flash, place it inside your definition !
         setflags        ( char -- ) Sets Flags with a mask. This isn't immediate,
                                but for flash, place it inside your definition !
-        create name     ( -- ) Creates and links a new invisible dictionary
+        (create) name   ( -- ) Creates and links a new invisible dictionary
                                header that does nothing.
                                Use FIG-style <builds .. does> !
-        find            ( cstr-addr -- a-addr flags )
+        find            ( c-addr len -- a-addr flags )
                                Searches for a String in Dictionary.
                                Gives back flags, which are different to ANS !
 
@@ -699,6 +734,10 @@ Deep insights:
                                Gives address to where you have stored data.
         <builds         ( -- ) Makes Dictionary header and reserves space
                                for special call.
+        (create) name   ( -- ) Create a definition with no code at all
+        create name     ( -- ) Create a definition with default action which
+                               cannot be changed later. Use <builds does> instead.
+                               Equivalent to : create <builds does> ;
         state           ( -- a-addr ) Address of state variable
         ]               ( -- ) Switch to compile state
         [               ( -- ) Switch to execute state
@@ -838,6 +877,7 @@ Interrupts:
         irq-adc0seq1
         irq-adc0seq2
         irq-adc0seq3
+        irq-terminal
 
   Look into vectors.s and interrupts.s to add more interrupts.
 
@@ -888,6 +928,7 @@ Interrupts:
         irq-adc1seq2
         irq-adc1seq3
         irq-ethernet
+        irq-terminal
 
   Look into vectors.s and interrupts.s to add more interrupts.
 
