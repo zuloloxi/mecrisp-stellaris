@@ -39,7 +39,7 @@ boot-task variable> up \ user pointer
     save-task @ sp! rp! \ restore pointers
     unloop ;            \ pop { r4  r5 } to restore the loop registers
 
-$20 cells Constant stackspace \ 32 stack elements for a background task
+128 cells Constant stackspace \ 128 stack elements for a background task
 
 : task: ( "name" -- )  stackspace cell+ 2* cell+ buffer: ;
 
@@ -383,11 +383,21 @@ Constant icmp-header#
 1 5 lshift constant UNF \ Transmit Underflow
 1 2 lshift constant TU \ Transmit Unavailabl
 
-create mymac  $00 c, $1A c, $B6 c,
-uniqueid0 @ dup c, 8 rshift dup c,
-uniqueid3 3 + c@ c, \ use unique ID
-$00 c, $80 c,
-create myip   10 c, 0 c, 0 c, mymac 5 + c@ c,
+create mymac  
+$00 c, 
+$1A c, 
+$B6 c, 
+uniqueid0 @ dup c, 
+8 rshift c, 
+uniqueid3 3 + c@ c, 
+$00 c, 
+$80 c,  \ use unique ID
+
+create myip   
+10 c, 
+0 c, 
+0 c, 
+mymac 5 + c@ c,
 
 : tc, ( addr char -- addr' )  over c! 1+ ;
 : tw, ( addr word -- addr' )  >r r@ 8 rshift tc, r> tc, ;
@@ -829,6 +839,9 @@ PORTF_BASE $52C + constant PORTF_PCTL   ( Pin Control )
   ." Incoming frames: " EMACRXCNTGB @ u. cr
   ." Outgoing frames: " EMACTXCNTGB @ u. cr
 ;
+
+: variable variable> ; \ Define variable back to initialised mode
+: 2variable 2variable> ;
 
 \ cornerstone rewind-to-ethernet
 compiletoram

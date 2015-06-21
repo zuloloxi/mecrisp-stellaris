@@ -250,3 +250,9 @@
      current-source
      setsource
      source
+
+02.07.2014, Matthias Koch, Mecrisp-Stellaris 2.0.0a
+
+  - Fixed a flaw in NVIC Forth code 
+  - Fixed a minor flaw in ethernet driver
+  - Added 1Msps analog-digital converter ethernet stream example

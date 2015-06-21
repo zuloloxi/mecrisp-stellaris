@@ -382,7 +382,7 @@ $40038FC8 constant ADC0_CC           \ Clock configuration
 \ -----------------------------------------------------------------------------
 \ -----------------------------------------------------------------------------
 
-\ Loran-C reveicer basics
+\ Loran-C receiver basics
 
  
 \ Fine tuning clock calibration for a precise frequency source
