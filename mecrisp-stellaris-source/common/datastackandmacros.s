@@ -111,6 +111,31 @@ irq_vektor_\Name:
 .endm
 
 
+.macro initinterrupt Name, Asmname, Routine
+
+@------------------------------------------------------------------------------
+  Wortbirne Flag_visible|Flag_variable, "irq-\Name" @ ( -- addr )
+  CoreVariable irq_hook_\Name
+@------------------------------------------------------------------------------  
+  pushdatos
+  ldr tos, =irq_hook_\Name
+  bx lr
+  .word \Routine  @ Startwert für unbelegte Interrupts   Start value for unused interrupts
+
+\Asmname:
+  .ifdef m0core
+    ldr r0, =irq_hook_\Name
+  .else
+    movw r0, #:lower16:irq_hook_\Name
+    movt r0, #:upper16:irq_hook_\Name
+  .endif
+
+  ldr r0, [r0]  @ Cannot ldr to PC directly, as this would require bit 0 to be set accordingly.
+  mov pc, r0    @ No need to make bit[0] uneven as 16-bit Thumb "mov" to PC ignores bit 0.
+  @ Angesprungene Routine kehrt von selbst zurück...   Code returns itself
+
+.endm
+
 @ -----------------------------------------------------------------------------
 @ Datenstack-Makros
 @ Macros for Datastack

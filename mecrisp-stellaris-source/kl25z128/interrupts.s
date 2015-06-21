@@ -45,6 +45,8 @@ nop_vektor:                     @        Handler for unused Interrupts
 @ All interrupt handlers work the same way and are generated with a macro:
 @------------------------------------------------------------------------------
 interrupt systick
+initinterrupt fault, nullhandler, unhandled
+
 interrupt adc
 interrupt cmp
 interrupt dac

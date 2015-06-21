@@ -793,6 +793,7 @@ limit index   do ... [one or more leave(s)] ... loop
         nop             ( -- ) No Operation. Hook for unused IRQs !
 
         irq-systick     ( -- a-addr ) Memory locations for IRQ-Hooks
+        irq-fault       ( -- a-addr ) For all faults and unhandled interrupts
 
 ;------------------------------------------------------------------------------
 ; Specials for LM4F120:

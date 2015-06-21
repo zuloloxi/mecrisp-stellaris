@@ -89,7 +89,7 @@
 
 
 @ -----------------------------------------------------------------------------
-nullhandler:
+unhandled:
   push {lr} 
   writeln "Unhandled Interrupt !"
   pop {pc}

@@ -170,3 +170,8 @@
 19.05.2014, Matthias Koch, Mecrisp-Stellaris 1.1.4
 
   - New target: STM32F103C8 on Shenzhen LC Technology board
+
+21.05.2014, Matthias Koch, Mecrisp-Stellaris 1.1.5
+
+  - Tab is now recognized as whitespace
+  - Added irq-fault

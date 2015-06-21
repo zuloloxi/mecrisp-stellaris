@@ -45,6 +45,9 @@ query: @ ( -- ) Nimmt einen String in den Eingabepuffer auf
         
         @ Steuerzeichen bearbeiten.
         @ Handle control characters below ascii 32 = space here.
+        cmp     r0, #9            @ TAB ?
+        beq     5f                @ Jump to replace TAB with space and include as normal character.
+
         cmp     r0, #10           @ Bei Enter sind wir fertig - LF  Finish with LF
         beq     3f
         cmp     r0, #13           @ Bei Enter sind wir fertig - CR  Finish with CR
@@ -108,7 +111,10 @@ query: @ ( -- ) Nimmt einen String in den Eingabepuffer auf
       ands r3, r0
       beq 4b @ Wenn nein, lösche ein weiteres Zeichen. No ? Delete one more byte.
       b 1b   @ Wenn ja, fertig. Dann habe ich soeben das erste Byte eines Unicode-Zeichens entfernt.  Yes ? Finished deleting.
-       
+
+
+5:      @ Replace TAB with space:
+        movs r0, #32       
 
 2:      @ Normale Zeichen annehmen
         @ Add a character to buffer if there is space left and echo it back.
