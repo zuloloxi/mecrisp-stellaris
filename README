@@ -23,6 +23,7 @@ a port of Mecrisp to the ARM Cortex M architecture.
 It runs out of the box on:
   - TI Stellaris Launchpad       with LM4F120H5QR
   - TI Tiva Connected Launchpad  with TM4C1294NCPDT
+  - STM Nucleo 401RE             with STM32F401RE
   - STM F0 Discovery             with STM32F051R8
   - STM VL Discovery             with STM32F100RB
   - STM F4 Discovery             with STM32F407VGT6 
@@ -49,6 +50,7 @@ Communication is via serial 115200 baud 8N1 over
   - UART0  in TM4C1294  (connected to USB-serial bridge on Tiva Connected Launchpad)
   - USART1 in STM32F051 (TX on PA9, RX on PA10)
   - USART1 in STM32F100 (TX on PA9, RX on PA10)
+  - USART2 in STM32F401 (TX on PA2, RX on PA3 connected to USB-serial bridge on Nucleo board)
   - USART2 in STM32F407 (TX on PA2, RX on PA3)
   - USART1 in STM32F429 (TX on PA9, RX on PA10)
   - UART0  in KL25Z128  (connected to USB-serial bridge on Freedom board)
@@ -77,6 +79,21 @@ Hardware and configuration for TM4C1294:
 
   On startup, this runs with internal PIOSC at 16 MHz, 
   which is specified +-3% over whole temperature range.
+
+Hardware and configuration for STM32F401:
+  Connect USB cable to ST-Link USB port.
+  Terminal is included into the debug section on Nucleo boards.
+  
+  Flashing is possible with st-flash:
+  https://github.com/texane/stlink
+
+  Flash memory is mirrored in hardware starting from address 0. Mecrisp uses
+  the low address range to generate short opcodes for calling core words, but
+  for flashing the binary, you have to use the "true address" $08000000.
+  st-flash erase
+  st-flash write mecrisp-stellaris-stm32f401.bin 0x08000000
+
+  On startup, this runs with internal 16 MHz HSI clock.
 
 Hardware and configuration for STM32F407:
   Connect USB cable to ST-Link USB port,
@@ -471,6 +488,8 @@ like signed double numbers.
                                          specified size of n1 words
                                          Maximum is 15 words
 
+        buffer: name    ( u -- ) Creates a buffer in RAM with u bytes length
+
         2@              ( a-addr -- ud|d ) Fetches double number from memory
         2!              ( ud|d a-addr -- ) Stores double number in memory
 
@@ -595,7 +614,7 @@ Deep insights:
 
         c,              ( char -- ) Appends a byte to dictionary
         align,          ( -- ) Makes Dictionary Pointer even, if uneven.
-        align4,         ( -- ) Aligns on 4. M0 only
+        align4,         ( -- ) Aligns on 4.
 
         movwmovt,       ( x Register -- ) Generate a movw/movt-Sequence to
                                           get x into any given Register. M3/M4 only
@@ -793,6 +812,16 @@ Interrupts:
 ; Specials for TM4C1294:
 ;------------------------------------------------------------------------------
 
+Communication:
+
+        hook-?key       ( -- a-addr ) Hooks for redirecting
+        hook-key        ( -- a-addr )   terminal IO
+        hook-emit       ( -- a-addr )     on the fly
+
+        serial-?key     ( -- Flag ) Serial interface
+        serial-key      ( -- Char )   terminal routines
+        serial-emit     ( Char -- )     as default communications
+
 Flash:
         eraseflash      ( -- ) Erases everything. Clears Ram. Restarts Forth.
 
@@ -894,7 +923,7 @@ Interrupts:
   Look into vectors.s and interrupts.s to add more interrupts.
 
 ;------------------------------------------------------------------------------
-; Specials for STM32F407 and STM32F429:
+; Specials for STM32F401, STM32F407 and STM32F429:
 ;------------------------------------------------------------------------------
 
 Flash:

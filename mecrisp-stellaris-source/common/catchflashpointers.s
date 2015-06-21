@@ -98,10 +98,30 @@ SucheFlashPointer_Hangelschleife:
   cmp r1, r3   @ Flag_invisible ? Überspringen !  Skip invisible definitions
   beq.n Sucheflashpointer_Speicherbelegung_fertig
     @ Dies Wort ist sichtbar. Prüfe, ob es Ram-Speicher anfordert und belegt.
-    @  write " Sichtbar: Prüfe die Speicherbelegung"
     @ This definition is visible. Check if it allocates RAM.
 
-    movs r3, #Flag_ramallot
+    ldr r3, =Flag_buffer
+    ands r3, r1
+    beq 1f @ No buffer requested.
+
+      @ Search for end of code of current definition.
+      bl skipstring
+      @ r0 zeigt nun an den Codebeginn des aktuellen Wortes.  r0 points to start of code of current definition
+      bl suchedefinitionsende @ Advance pointer to end of code. This is detected by "bx lr" or "pop {pc}" opcodes.
+      @ r0 ist nun an der Stelle, wo die Initialisierungsdaten liegen. r0 now points to the location of the initialisation at the end of code of current definition.
+
+      @ Fetch required length of buffer, do this in two steps because of alignment issues
+      ldrh r3, [r0]
+      ldrh r0, [r0, #2]
+      lsls r0, #16
+      orrs r3, r0
+      
+      @ Ramvariablenpointer wandern lassen  Subtract from the pointer that points to the next free location
+      subs r5, r3  
+      b.n Sucheflashpointer_Speicherbelegung_fertig @ Finished
+
+
+1:  movs r3, #Flag_ramallot
     ands r3, r1
     
     beq.n Sucheflashpointer_Speicherbelegung_fertig @ Benötigt doch kein RAM.

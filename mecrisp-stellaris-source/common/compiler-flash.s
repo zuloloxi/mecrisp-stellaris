@@ -167,7 +167,6 @@ alignkomma: @ Macht den Dictionarypointer gerade
   bx lr
   .endif
 
-  .ifdef m0core
 @ -----------------------------------------------------------------------------
   Wortbirne Flag_visible, "align4," @ ( -- ) 
 align4komma: @ Macht den Dictionarypointer auf 4 gerade
@@ -191,7 +190,6 @@ align4komma: @ Macht den Dictionarypointer auf 4 gerade
 
 1: @ Fertig.
   pop {pc}
-  .endif
 
   .ifdef charkommaavailable
 @ -----------------------------------------------------------------------------
@@ -426,6 +424,8 @@ Zweitpointertausch:
 
 1:bx lr
 
+  .ltorg 
+
 @ -----------------------------------------------------------------------------
   Wortbirne Flag_visible, "create"
 create: @ Nimmt das nächste Token aus dem Puffer,
@@ -626,8 +626,12 @@ nvariable: @ Creates an initialised variable of given length.
   ldr r0, =VariablenPointer
   ldr r1, [r0]
   subs r1, r2  @ Ram voll ?  Maybe insert a check for enough RAM left ?
-  str r1, [r0]
- 
+    ldr r2, =RamDictionaryAnfang
+    cmp r1, r2
+    bhs 1f
+      Fehler_quit "Not enough RAM"
+1:str r1, [r0]
+
   @ Code schreiben:  Write code
   pushda r1
   bl literalkomma    @ Adresse im Ram immer mit movt --> 12 Bytes
@@ -679,16 +683,15 @@ variable_ram:
 @  pushdaconstw 0x4770 @ Opcode für bx lr --> 2 Bytes
 @  bl hkomma
 
-  .ifdef m0core @ This is to align dictionary pointer to have variable locations that are always 4-even
+  @ This is to align dictionary pointer to have variable locations that are always 4-even
     bl here
     movs r0, #2
     ands tos, r0
     drop
     bne 1f
-      pushdaconstw 0x0036  @ nop = movs tos, tos
+      pushdaconst 0x0036  @ nop = movs tos, tos
       bl hkomma
 1:
-  .endif
 
   pushdatos
   ldr tos, =0x3f04603e @ subs r7, #4    str r6, [r7, #0]
@@ -712,6 +715,90 @@ variable_ram:
 2:@ Finished.
 
   bl setze_faltbarflag @ Variables always are 0-foldable as their address never changes.
+  bl smudge
+  pop {pc}
+
+
+@------------------------------------------------------------------------------
+  Wortbirne Flag_visible, "buffer:" @ ( Length -- )
+  @ Creates an uninitialised buffer of given bytes length.
+@------------------------------------------------------------------------------
+  
+  push {lr}
+  bl create
+
+  @ Round requested buffer length to next 4-Byte boundary to ensure alignment
+  movs r0, #1
+  ands r0, tos
+  adds tos, r0
+
+  movs r0, #2
+  ands r0, tos
+  adds tos, r0
+
+  ldr r0, =Dictionarypointer
+  ldr r1, [r0]
+
+  ldr r2, =Backlinkgrenze
+  cmp r1, r2
+  bhs rambuffer_ram @ Befinde mich im Ram. Schalte um !
+
+  @ -----------------------------------------------------------------------------
+  @ Buffer Flash
+  
+  @ Variablenpointer erniedrigen und zurückschreiben   Decrement variable pointer
+
+  ldr r0, =VariablenPointer
+  ldr r1, [r0]
+  subs r1, tos  @ Ram voll ?  Check for enough RAM left ?
+    ldr r2, =RamDictionaryAnfang
+    cmp r1, r2
+    bhs 1f
+      Fehler_quit "Not enough RAM"
+1:str r1, [r0]
+ 
+  @ Code schreiben:  Write code
+  pushda r1
+  bl literalkomma    @ Adresse im Ram immer mit movt --> 12 Bytes
+  pushdaconstw 0x4770 @ Opcode für bx lr --> 2 Bytes
+  bl hkomma
+
+  @ Write desired size of buffer at the end of the definition
+  bl komma
+
+  @ Finished
+  pushdaconstw Flag_buffer_foldable  @ Finally (!) set Flags for buffer usage.
+  bl setflags
+  bl smudge
+  pop {pc}
+
+  @ -----------------------------------------------------------------------------
+  @ Buffer RAM
+rambuffer_ram:
+  @ This is simple: Write code, allot space, a classic Forth buffer.
+
+  @ This is to align dictionary pointer to have variable locations that are always 4-even
+    bl here
+    movs r0, #2
+    ands tos, r0
+    drop
+    bne 1f
+      pushdaconst 0x0036  @ nop = movs tos, tos
+      bl hkomma
+1:
+
+  pushdatos
+  ldr tos, =0x3f04603e @ subs r7, #4    str r6, [r7, #0]
+  bl reversekomma
+  pushdatos
+  ldr tos, =0x467e3602 @ mov r6, pc     adds r6, #2
+  bl reversekomma
+  pushdaconstw 0x4770  @ bx lr
+  bl hkomma
+
+  bl allot @ Reserve space. Allot checks for itself if there is enough RAM left.
+
+  bl setze_faltbarflag @ Buffers always are 0-foldable as their address never changes.
   bl smudge
   pop {pc}
 

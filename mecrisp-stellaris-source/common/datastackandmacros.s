@@ -222,6 +222,9 @@ irq_vektor_\Name:
 .equ Flag_opcodierbar_Rechenlogik_M3,    Flag_foldable|Flag_opcodable|6
   .endif
 
+.equ Flag_buffer, 0x00000100
+.equ Flag_buffer_foldable, Flag_buffer|Flag_foldable
+
 @ -----------------------------------------------------------------------------
 @ Makros zum Bauen des Dictionary
 @ Macros for building dictionary

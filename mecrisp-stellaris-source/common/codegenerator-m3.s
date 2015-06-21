@@ -554,7 +554,15 @@ dodoes:
       ldr r2, =Dictionarypointer
       ldr r3, [r2] @ Alten Dictionarypointer auf jeden Fall bewahren  Save old Dictionarypointer.
 
-  popda r1     @ r1 enthält jetzt die Codestartadresse der aktuellen Definition.  
+  popda r1     @ r1 enthält jetzt die Codestartadresse der aktuellen Definition.
+
+  @ This is to align dictionary pointer to have does> target locations that are always 4-even
+  movs r0, #2
+  ands r0, r1
+  beq 1f
+    adds r1, #2
+1:
+  
   adds r1, #2  @ Am Anfang sollte das neudefinierte Wort ein push {lr} enthalten, richtig ?
                @ Skip the push {lr} opcode in that definition.
 
@@ -575,6 +583,16 @@ dodoes:
 @ -----------------------------------------------------------------------------
   push {lr}
   bl create       @ Neues Wort wird erzeugt
+
+  @ This is to align dictionary pointer to have does> target locations that are always 4-even
+    bl here
+    movs r0, #2
+    ands tos, r0
+    drop
+    beq 1f
+      pushdaconst 0x0036  @ nop = movs tos, tos
+      bl hkomma
+1:
 
   pushdaconstw 0xb500 @ Opcode für push {lr} schreiben  Write opcode for push {lr}
   bl hkomma

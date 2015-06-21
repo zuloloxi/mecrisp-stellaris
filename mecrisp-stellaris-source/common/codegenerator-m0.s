@@ -465,7 +465,7 @@ dodoes:
     ands tos, r0
     drop
     bne 1f
-      pushdaconstw 0x0036  @ nop = movs tos, tos
+      pushdaconst 0x0036  @ nop = movs tos, tos
       bl hkomma
 1:
 

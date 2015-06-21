@@ -151,3 +151,10 @@
 
   - New target: STM32F051R8 on STM F0 Discovery
   - Tidyup and factoring of common STM terminal code
+
+03.05.2014, Matthias Koch, Mecrisp-Stellaris 1.1.2
+
+  - New target: STM32F401RE on STM Nucleo F401RE
+  - Variables and <builds does> are now 4-aligned on M3/M4, too
+  - Added buffer:
+  - Hooks for terminal redirection on TM4C1294

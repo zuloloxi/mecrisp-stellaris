@@ -100,14 +100,15 @@ uart_init: @ ( -- )
 
   bx lr
 
+.include "../common/terminalhooks.s"
 
 @ Werte für den UARTFR-Register
 .equ RXFE, 0x10 @ Receive  FIFO empty
 .equ TXFF, 0x20 @ Transmit FIFO full
 
 @ -----------------------------------------------------------------------------
-  Wortbirne Flag_visible, "emit"
-emit: @ ( c -- ) Sendet Wert in r0
+  Wortbirne Flag_visible, "serial-emit"
+serial_emit: @ ( c -- ) Sendet Wert in r0
 @ -----------------------------------------------------------------------------
    push {r0, r1}
 
@@ -124,8 +125,8 @@ emit: @ ( c -- ) Sendet Wert in r0
    bx lr
 
 @ -----------------------------------------------------------------------------
-  Wortbirne Flag_visible, "key"
-key: @ ( -- c ) Empfängt Wert in r0
+  Wortbirne Flag_visible, "serial-key"
+serial_key: @ ( -- c ) Empfängt Wert in r0
 @ -----------------------------------------------------------------------------
    push {r0, r1}
 
@@ -144,8 +145,8 @@ key: @ ( -- c ) Empfängt Wert in r0
    bx lr
 
 @ -----------------------------------------------------------------------------
-  Wortbirne Flag_visible, "?key"
-  @ ( -- ? ) Ist eine Taste gedrückt ?
+  Wortbirne Flag_visible, "serial-?key"
+serial_qkey:  @ ( -- ? ) Ist eine Taste gedrückt ?
 @ -----------------------------------------------------------------------------
    ldr r0, =UARTFR
    ldr r1, [r0]     @ Warte solange der Receive-FIFO leer ist.
