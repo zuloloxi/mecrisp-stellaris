@@ -13,8 +13,8 @@ begin
 end;
 
 procedure start_chat(s : longint; peer : TInetSockAddr);
-var input_buffer : array[0..1023] of byte;
-    output_buffer : array[0..1023] of byte;
+var input_buffer : array[0..1475] of byte;
+    output_buffer : array[0..1475] of byte;
 
     fds : array[0..1] of tpollfd;
     ret : longint;
@@ -42,6 +42,7 @@ begin
       if (fds[0].revents and (POLLIN or POLLPRI)) <> 0 then
       begin
         // textcolor(red);
+        source_len := sizeof(tinetsockaddr);
         bytes := fprecvfrom(s, @input_buffer, sizeof(input_buffer), 0, @source_addr, @source_len); // Statt nil nil könnte ich hier die Absenderadresse bekommen.
         // write ('  Source port: ', ntohs(source_addr.sin_port), ' ');
         if bytes < 0 then writeln('Receive error');        
@@ -82,7 +83,7 @@ var s : longint;
 begin
   if paramcount <> 3 then
   begin
-    writeln('Usage: chat <local port> <remote host> <remote port>');
+    writeln('Usage: udp-terminal <local port> <remote host> <remote port>');
     halt;
   end;
 

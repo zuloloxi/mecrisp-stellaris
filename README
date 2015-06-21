@@ -34,7 +34,7 @@ It runs out of the box on:
 Contributions:
   - Teensy 3.1                   with MK20DX256VLH7
   - Chinese QF-LM4F232           with LM4F232H5QC
-  -                                   nRF51822
+  - nRFgo Starter Kit            with nRF51822
 
 http://mecrisp.sourceforge.net/
 
@@ -166,6 +166,26 @@ Hardware and configuration for KL25Z128:
   Freescale Freedom binary images. Go into kl25z128/thumbulator 
   directory, type "make", copy the binary and then type 
   "thumbulator mecrisp-stellaris-kl25z128.bin" to run.
+
+Hardware and configuration for nRF51822:
+  ( Contributed by John Huberts )
+
+  I have been using the nRFgo Motherboard fitted with a nRF51822 module 
+  to do the development and testing. Programming is done using nRFStudio
+  and the Segger J-LINK LITE that comes with the dev kit.
+
+  I was also able to debug using GDB in the nRF51 Eclipse IDE
+
+  The motherboard has a DB9 for serial port connection but jumpers need to 
+  be placed between P15 (RXD, TXD) and P9 (P2.0, P2.1). If you don't have a
+  serial port on your PC then you will need a USB-serial cable.
+
+  The UART can be configured to use other pins on the SOC by changing these 
+  lines in in terminal.s:
+
+  .equ RX_PIN_NUMBER, 16
+  .equ TX_PIN_NUMBER, 17
+
 
 Mecrisp-Stellaris itself is sending LF for line ending,
 but recognizes both LF and CR. Invoke Picocom with something like
@@ -1068,6 +1088,51 @@ Interrupts:
         irq-portc
         irq-portd
         irq-porte
+
+  Look into vectors.s and interrupts.s to add more interrupts.
+
+;------------------------------------------------------------------------------
+; Specials for nRF51822
+;------------------------------------------------------------------------------
+
+Flash:
+        eraseflash      ( -- ) Erases everything. Clears Ram. Restarts Forth.
+
+        eraseflashfrom  ( a-addr -- ) Starts erasing at this address.
+                                      Clears Ram. Restarts Forth.
+
+        flashpageerase  ( a-addr -- ) Erase one 1k flash page only. Take care:
+                                      No Reset, no dictionary reinitialisation.
+
+        hflash!         ( u|n a-addr -- )   Writes halfword to flash
+
+Interrupts:
+
+        irq-power       ( -- a-addr ) Memory locations for IRQ-Hooks
+        irq-radio
+        irq-uart
+        irq-spi0
+        irq-spi1
+        irq-gpiote
+        irq-adc
+        irq-tim0
+        irq-tim1
+        irq-tim2
+        irq-rtc0
+        irq-temp
+        irq-rng
+        irq-ecb
+        irq-ccm_aar
+        irq-wdt
+        irq-rtc1
+        irq-qdec
+        irq-lpcomp
+        irq-swi0
+        irq-swi1
+        irq-swi2
+        irq-swi3
+        irq-swi4
+        irq-swi5
 
   Look into vectors.s and interrupts.s to add more interrupts.
 

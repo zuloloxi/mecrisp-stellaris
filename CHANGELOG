@@ -208,6 +208,7 @@
   - Create now has default action equivalent to : create <builds does> ;
     Old behaviour is renamed into (create)
   - Added irq-terminal to LM4F120 and TM4C1294 targets
+  - Fixed flaw in 16-bit Flash write emulation layer for Freescale targets
   - Changed disassemblers and examples for new string handling
 
   Simply renamed with same function:
@@ -256,3 +257,8 @@
   - Fixed a flaw in NVIC Forth code 
   - Fixed a minor flaw in ethernet driver
   - Added 1Msps analog-digital converter ethernet stream example
+
+08.07.2014, Matthias Koch, Mecrisp-Stellaris 2.0.0b
+
+  - Added comments for nRF51822 in README
+  - Fixed flaw in Pascal UDP ethernet terminal code
