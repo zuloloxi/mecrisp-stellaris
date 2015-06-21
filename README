@@ -23,6 +23,7 @@ a port of Mecrisp to the ARM Cortex M architecture.
 It runs out of the box on:
   - TI Stellaris Launchpad       with LM4F120H5QR
   - TI Tiva Connected Launchpad  with TM4C1294NCPDT
+  - STM F0 Discovery             with STM32F051R8
   - STM VL Discovery             with STM32F100RB
   - STM F4 Discovery             with STM32F407VGT6 
   - STM F429 Discovery           with STM32F429ZIT6
@@ -46,6 +47,7 @@ inlining of short words.
 Communication is via serial 115200 baud 8N1 over
   - UART0  in LM4F120   (connected to USB-serial bridge on Stellaris Launchpad)
   - UART0  in TM4C1294  (connected to USB-serial bridge on Tiva Connected Launchpad)
+  - USART1 in STM32F051 (TX on PA9, RX on PA10)
   - USART1 in STM32F100 (TX on PA9, RX on PA10)
   - USART2 in STM32F407 (TX on PA2, RX on PA3)
   - USART1 in STM32F429 (TX on PA9, RX on PA10)
@@ -104,6 +106,18 @@ Hardware and configuration for STM32F429:
   st-flash write mecrisp-stellaris-stm32f429.bin 0x08000000
 
   On startup, this runs with external 8 MHz crystal HSE clock.
+
+Hardware and configuration for STM32F051:
+  Similiar to STM32F407.
+
+  Connect USB cable to ST-Link USB port,
+  connect your favourite serial link to PA9 (TX) and PA10 (RX),
+  keep logic voltage levels in mind !
+
+  st-flash erase
+  st-flash write mecrisp-stellaris-stm32f051.bin 0x08000000
+
+  On startup, this runs with internal 8 MHz HSI clock.
 
 Hardware and configuration for STM32F100:
   Similiar to STM32F407.
@@ -826,6 +840,34 @@ Interrupts:
   Look into vectors.s and interrupts.s to add more interrupts.
 
 ;------------------------------------------------------------------------------
+; Specials for STM32F051:
+;------------------------------------------------------------------------------
+
+Flash:
+        eraseflash      ( -- ) Erases everything. Clears Ram. Restarts Forth.
+
+        eraseflashfrom  ( a-addr -- ) Starts erasing at this address.
+                                      Clears Ram. Restarts Forth.
+
+        flashpageerase  ( a-addr -- ) Erase one 1k flash page only. Take care:
+                                      No Reset, no dictionary reinitialisation.
+
+        hflash!         ( u|n a-addr -- )   Writes halfword to flash
+
+Interrupts:
+
+        irq-adc         ( -- a-addr ) Memory locations for IRQ-Hooks
+        irq-exti0_1
+        irq-exti2_3
+        irq-exti4_15
+        irq-tim1_up
+        irq-tim1_cc
+        irq-tim2
+        irq-tim3
+
+  Look into vectors.s and interrupts.s to add more interrupts.
+  
+;------------------------------------------------------------------------------
 ; Specials for STM32F100:
 ;------------------------------------------------------------------------------
 
@@ -850,7 +892,7 @@ Interrupts:
         irq-exti0
 
   Look into vectors.s and interrupts.s to add more interrupts.
-  
+
 ;------------------------------------------------------------------------------
 ; Specials for STM32F407 and STM32F429:
 ;------------------------------------------------------------------------------

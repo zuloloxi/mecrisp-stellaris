@@ -16,6 +16,10 @@ cd tm4c1294
 make clean all && ls -l *.bin && md5sum *.bin && cp *.bin ../../tm4c1294
 cd ..
 
+cd stm32f051
+make clean all && ls -l *.bin && md5sum *.bin && cp *.bin ../../stm32f051
+cd ..
+
 cd stm32f100
 make clean all && ls -l *.bin && md5sum *.bin && cp *.bin ../../stm32f100
 cd ..
@@ -30,6 +34,10 @@ cd ..
 
 # Intel Hex images for STM targets:
 
+cd ..
+
+cd stm32f051
+arm-none-eabi-objcopy --change-addresses 0x08000000 -I binary -O ihex mecrisp-stellaris-stm32f051.bin mecrisp-stellaris-stm32f051.hex
 cd ..
 
 cd stm32f100

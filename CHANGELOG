@@ -146,4 +146,8 @@
   - Added fill and compiletoram?
   - Improved dictionary building macros
   - Fixed flaw in LM4F120 PLL example
- 
+
+02.05.2014, Matthias Koch, Mecrisp-Stellaris 1.1.1
+
+  - New target: STM32F051R8 on STM F0 Discovery
+  - Tidyup and factoring of common STM terminal code
