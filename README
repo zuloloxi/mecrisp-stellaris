@@ -26,6 +26,7 @@ It runs out of the box on:
   - STM Nucleo 401RE             with STM32F401RE
   - STM F0 Discovery             with STM32F051R8
   - STM VL Discovery             with STM32F100RB
+  - Shenzhen LC Technology board with STM32F103C8T6
   - STM F4 Discovery             with STM32F407VGT6 
   - STM F429 Discovery           with STM32F429ZIT6
   - Freescale Freedom FRDM-KL25Z with KL25Z128VLK4
@@ -910,7 +911,7 @@ Interrupts:
   Look into vectors.s and interrupts.s to add more interrupts.
   
 ;------------------------------------------------------------------------------
-; Specials for STM32F100:
+; Specials for STM32F100 and STM32F103:
 ;------------------------------------------------------------------------------
 
 Flash:
