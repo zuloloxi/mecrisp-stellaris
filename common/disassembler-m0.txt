@@ -122,8 +122,8 @@ $1C00 $FE00 opcode? if ." adds" 0 reg. 3 reg. 6 imm3. then   \ ADD(1) small imme
 $3000 $F800 opcode? if ." adds" 8 reg. 0 imm8. then          \ ADD(2) big immediate one register
 $1800 $FE00 opcode? if ." adds" 0 reg. 3 reg. 6 reg. then    \ ADD(3) three registers
 $4400 $FF00 opcode? if ." add"  reg16split. 3 reg16. then    \ ADD(4) two registers one or both high no flags
-$A000 $F800 opcode? if ." add"  8 reg. ." pc " 0 imm8. then  \ ADD(5) rd = pc plus immediate
-$A800 $F800 opcode? if ." add"  8 reg. ." sp " 0 imm8. then  \ ADD(6) rd = sp plus immediate
+$A000 $F800 opcode? if ." add"  8 reg. ."  pc " 0 imm8<<2. then  \ ADD(5) rd = pc plus immediate
+$A800 $F800 opcode? if ." add"  8 reg. ."  sp " 0 imm8<<2. then  \ ADD(6) rd = sp plus immediate
 $B000 $FF80 opcode? if ." add sp" 0 imm7<<2. then            \ ADD(7) sp plus immediate
 
 $4000 $FFC0 opcode? if ." ands" 0 reg. 3 reg. then           \ AND
