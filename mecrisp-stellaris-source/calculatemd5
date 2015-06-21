@@ -30,11 +30,19 @@ cd stm32f051
 md5sum *.bin
 cd ..
 
+cd stm32l152
+md5sum *.bin
+cd ..
+
 cd stm32f100
 md5sum *.bin
 cd ..
 
 cd stm32f103
+md5sum *.bin
+cd ..
+
+cd stm32f303
 md5sum *.bin
 cd ..
 

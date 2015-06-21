@@ -28,11 +28,19 @@ cd stm32f051
 make clean
 cd ..
 
+cd stm32l152
+make clean
+cd ..
+
 cd stm32f100
 make clean
 cd ..
 
 cd stm32f103
+make clean
+cd ..
+
+cd stm32f303
 make clean
 cd ..
 

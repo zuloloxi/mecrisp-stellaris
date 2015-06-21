@@ -118,6 +118,7 @@ CoreDictionaryAnfang: @ Dictionary-Einsprungpunkt setzen
   .ltorg @ Mal wieder Konstanten schreiben
   .include "../common/interpreter.s"
   .ltorg @ Mal wieder Konstanten schreiben
+  .include "../common/interrupts-common.s"
   .include "interrupts.s" @ You have to change interrupt handlers for Porting !
 
 @ -----------------------------------------------------------------------------

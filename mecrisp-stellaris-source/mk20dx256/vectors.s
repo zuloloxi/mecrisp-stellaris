@@ -20,32 +20,8 @@
 @ Interruptvektortabelle
 @ -----------------------------------------------------------------------------
 
-.equ addresszero, . @ This is needed to circumvent address relocation issues.
+.include "../common/vectors-common.s"
 
-.word   returnstackanfang  @ 00: Stack top address
-.word   Reset+1            @ 01: Reset Vector  +1 wegen des Thumb-Einsprunges (because of thumb2 mode)
-
-@ Gemeinsame Interruptvektortabelle: Common interrupt vector table:
-
-.word nullhandler+1   @ 02: The NMI handler
-.word nullhandler+1   @ 03: The hard fault handler
-.word nullhandler+1   @ 04: The MPU fault handler
-.word nullhandler+1   @ 05: ARM: Bus Fault
-.word nullhandler+1   @ 06: ARM: Usage Fault
-.word 0               @ 07: Reserved
-.word 0               @ 08: Reserved
-.word 0               @ 09: Reserved
-.word 0               @ 10: Reserved
-.word nullhandler+1   @ 11: SVCall handler
-.word nullhandler+1   @ 12: Debug Monitor
-.word 0               @ 13: Reserved
-.word nullhandler+1   @ 14: The PendSV handler
-.word irq_vektor_systick+1   @ 15: The SysTick handler
-
-@ Bis hierhin ist die Interruptvektortabelle bei allen ARM Cortex M0 Chips gleich.
-@ Danach geht es mit den Besonderheiten eines jeden Chips los.
-
-@ Up to this point the interrupt vector is the same forall ARM Cortex M0 chips
 @ Special interrupt handlers for this particular chip:
 
 .word nullhandler+1 @ DMA Channel 0 Transfer Complete and Error
@@ -162,9 +138,4 @@
 @ Start for real code !
 
 .org 0x410
-@ -----------------------------------------------------------------------------
-unhandled:
-  push {lr} 
-  writeln "Unhandled Interrupt !"
-  pop {pc}
 @ -----------------------------------------------------------------------------
