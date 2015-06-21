@@ -24,3 +24,6 @@ cd stm32f4
 make clean
 cd ..
 
+cd stm32f429
+make clean
+cd ..

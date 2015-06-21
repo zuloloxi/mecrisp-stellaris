@@ -115,6 +115,11 @@
 
   Bugfix in third loop index "k"
 
-26.03.2014, Matthias Koch, Mecris-Stellaris 1.0.2:
+26.03.2014, Matthias Koch, Mecrisp-Stellaris 1.0.2:
 
   - New target: TM4C1294 on Tiva Connected Launchpad
+
+05.04.2014, Matthias Koch, Mecrisp-Stellaris 1.0.3:
+
+  - New target: STM32F429ZIT6 on STM F429 Discovery
+  - Instruction set emulator for Cortex M0 included

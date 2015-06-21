@@ -24,3 +24,6 @@ cd stm32f4
 make clean all && ls -l *.bin && md5sum *.bin && cp *.bin ../../stm32f4
 cd ..
 
+cd stm32f429
+make clean all && ls -l *.bin && md5sum *.bin && cp *.bin ../../stm32f429
+cd ..

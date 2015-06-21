@@ -16,13 +16,13 @@
 @    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 @
 
-@ Schreiben und Löschen des Flash-Speichers im STM32F4.
+@ Schreiben und Löschen des Flash-Speichers im STM32F429.
 
 @ In diesem Chip gibt es Flashschreibzugriffe mit wählbarer Breite -
-@ so ist es diesmal ganz komfortabel. Leider gibt es nur weniger große
+@ so ist es diesmal ganz komfortabel. Leider gibt es nur wenige große
 @ Sektoren, die getrennt gelöscht werden können.
 
-@ Write and Erase Flash in STM32F4.
+@ Write and Erase Flash in STM32F429.
 @ Porting: Rewrite this ! You need hflash! and - as far as possible - cflash!
 
 .equ FLASH_Base, 0x40023C00
@@ -179,10 +179,20 @@ eraseflashsector:  @ Löscht einen Flash-Sektor
 @ -----------------------------------------------------------------------------
   push {lr}
 
-  cmp tos, #1   @ Nicht den Kern in Sektor 0 löschen
+  cmp tos, #1   @ Nicht den Kern in Sektor 0 löschen  Never erase sector 0
   blo 2f
-  cmp tos, #12  @ Es gibt nur 12 Sektoren
-  bhs 2f
+  cmp tos, #28  @ Es gibt nur 24 Sektoren, allerdings mit einer Lücke dazwischen.
+  bhs 2f        @ There are 24 sectors, but with an hole in between.
+
+  cmp tos, #12   @ Don't accept the invalid sectors between the both Flash banks for erasure.
+  beq 2f
+  cmp tos, #13
+  beq 2f
+  cmp tos, #14
+  beq 2f
+  cmp tos, #15
+  beq 2f
+
 
   ldr r2, =FLASH_KEYR
   ldr r3, =0x45670123
@@ -245,7 +255,10 @@ eraseflashsector:  @ Löscht einen Flash-Sektor
   push {lr}
 
 @ -----------------------------------------------------------------------------
+@ Bank 1
+@ -----------------------------------------------------------------------------
 @ 16 kb sectors
+  @ Sector 0 contains core and never is erased.
   loeschpruefung  0x08004000  0x08007FFF  1
   loeschpruefung  0x08008000  0x0800BFFF  2
   loeschpruefung  0x0800C000  0x0800FFFF  3
@@ -263,6 +276,29 @@ eraseflashsector:  @ Löscht einen Flash-Sektor
   loeschpruefung  0x080A0000  0x080BFFFF  9
   loeschpruefung  0x080C0000  0x080DFFFF  10
   loeschpruefung  0x080E0000  0x080FFFFF  11
+
+@ -----------------------------------------------------------------------------
+@ Bank 2, starting with sector 16
+@ -----------------------------------------------------------------------------
+@ 16 kb sectors
+  loeschpruefung  0x08100000  0x08103FFF  16
+  loeschpruefung  0x08104000  0x08107FFF  17
+  loeschpruefung  0x08108000  0x0810BFFF  18
+  loeschpruefung  0x0810C000  0x0810FFFF  19
+
+@ -----------------------------------------------------------------------------
+@ 64 kb sector
+  loeschpruefung  0x08110000  0x0811FFFF  20
+
+@ -----------------------------------------------------------------------------
+@ 128 kb sectors
+  loeschpruefung  0x08120000  0x0813FFFF  21
+  loeschpruefung  0x08140000  0x0815FFFF  22
+  loeschpruefung  0x08160000  0x0817FFFF  23
+  loeschpruefung  0x08180000  0x0819FFFF  24
+  loeschpruefung  0x081A0000  0x081BFFFF  25
+  loeschpruefung  0x081C0000  0x081DFFFF  26
+  loeschpruefung  0x081E0000  0x081FFFFF  27
 
   writeln "Finished. Reset !"
 

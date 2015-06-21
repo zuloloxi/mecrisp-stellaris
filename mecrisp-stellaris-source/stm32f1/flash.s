@@ -1,6 +1,6 @@
 @
-@    Mecrisp - A native code Forth implementation for MSP430 microcontrollers
-@    Copyright (C) 2011  Matthias Koch
+@    Mecrisp-Stellaris - A native code Forth implementation for ARM-Cortex M microcontrollers
+@    Copyright (C) 2013  Matthias Koch
 @
 @    This program is free software: you can redistribute it and/or modify
 @    it under the terms of the GNU General Public License as published by
@@ -16,7 +16,7 @@
 @    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 @
 
-@ Schreiben und Löschen des Flash-Speichers im STM32F4.
+@ Schreiben und Löschen des Flash-Speichers im STM32F1.
 
 @ In diesem Chip gibt es Flashschreibzugriffe mit wählbarer Breite -
 @ so ist es diesmal ganz komfortabel. Leider gibt es nur weniger große
