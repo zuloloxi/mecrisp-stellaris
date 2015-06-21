@@ -232,7 +232,7 @@ struktur_loop:
   bx lr @ Ende für inline,   End marker for inline,
   
 @------------------------------------------------------------------------------
-  Wortbirne Flag_immediate_compileonly, "do" 
+  Wortbirne Flag_immediate_compileonly|Flag_opcodierbar_Spezialfall, "do" 
   @ Es wird benutzt mit ( Limit Index -- ).
   @ ( -- AlterLeavePointer 0 Sprungziel 3 )
 
@@ -245,16 +245,22 @@ struktur_loop:
   ldr tos, =struktur_do  @ Inline opcodes for do
   bl inlinekomma
 
+do_rest_der_schleifenstruktur:
   ldr r0, =leavepointer
   ldr r1, [r0]
   pushda r1     @ Alten Leavepointer sichern  Save old leavepointer
   pushdaconst 0
   str psp, [r0] @ Aktuelle Position im Stack sichern  Save current position on datastack
 
-do_intern:
   bl branch_r    @ Schleifen-Rücksprung vorbereiten  Prepare loop jump back to the beginning
   pushdaconst 3  @ Strukturerkennung  Structure matching
   pop {pc}
+
+@------------------------------------------------------------------------------
+  @ Opcodable optimisations enter here. At least one folding constant available.
+  push {lr}
+  bl gemeinsame_schleifenoptimierung
+  b.n do_rest_der_schleifenstruktur
 
 struktur_do:
   push {rloopindex, rlooplimit}
@@ -264,7 +270,7 @@ struktur_do:
 
 
 @------------------------------------------------------------------------------
-  Wortbirne Flag_immediate_compileonly, "?do" 
+  Wortbirne Flag_immediate_compileonly|Flag_opcodierbar_Spezialfall, "?do" 
   @ Es wird benutzt mit ( Limit Index -- ).
   @ ( -- AlterLeavePointer Vorsprungadresse 1 Sprungziel 3 )
   @ Diese Schleife springt sofort ans Ende, wenn Limit=Index.
@@ -275,8 +281,12 @@ struktur_do:
 @------------------------------------------------------------------------------
   push {lr}
   pushdatos
-  ldr tos, =struktur_qdo  @ Inline opcodes for ?do
+  ldr tos, =struktur_do  @ Inline opcodes for do
   bl inlinekomma
+
+qdo_rest_der_schleifenstruktur:
+  pushdaconstw 0x42AC @ cmp rloopindex, rlooplimit @ Vergleiche die beiden Schleifenparameter  Compare both loop registers
+  bl hkomma
 
   ldr r0, =leavepointer
   ldr r1, [r0]
@@ -292,12 +302,48 @@ struktur_do:
   ldr r0, =leavepointer
   str psp, [r0] @ Aktuelle Position im Stack sichern  Save current position on datastack
 
-  b.n do_intern
+  bl branch_r    @ Schleifen-Rücksprung vorbereiten  Prepare loop jump back to the beginning
+  pushdaconst 3  @ Strukturerkennung  Structure matching
+  pop {pc}
+
+@------------------------------------------------------------------------------
+  @ Opcodable optimisations enter here. At least one folding constant available.
+  push {lr}
+  bl gemeinsame_schleifenoptimierung
+  b.n qdo_rest_der_schleifenstruktur
 
 
-struktur_qdo:
-  push {rloopindex, rlooplimit}
-  popda rloopindex
-  popda rlooplimit
-  cmp rloopindex, rlooplimit @ Vergleiche die beiden Schleifenparameter  Compare both loop registers
-  bx lr @ Ende für inline,  End for inline,
+@------------------------------------------------------------------------------
+gemeinsame_schleifenoptimierung: @ This is a common part for opcoding optimized do and ?do
+@------------------------------------------------------------------------------
+  push {lr}
+
+  @ Write Opcodes !
+  pushdaconstw 0xB430 @ push {rloopindex, rlooplimit}
+  bl hkomma
+
+  pushdaconst 4 @ Register 4 = rloopindex
+  bl registerliteralkomma
+
+  subs r3, #1 @ One constant less
+  beq.n 1f
+
+    @ Second constant available
+    pushdaconst 5 @ Register 4 = rlooplimit
+    bl registerliteralkomma
+    subs r3, #1 @ Another constant consumed
+
+    bl konstantenschreiben @ Maybe there are some more folding constants, then have to be written now.
+    pop {pc}
+
+1:@ No more constants available
+
+  @ popda rlooplimit
+  pushdaconst  0x0035 
+  bl hkomma
+  pushdaconstw 0xCF40
+  bl hkomma
+
+  bl konstantenschreiben @ Maybe there are some more folding constants, then have to be written now.
+  pop {pc}
+

@@ -241,6 +241,11 @@ interpret:
   movs r0, #7 @ Mask for opcoding cases
   ands r1, r0
 
+  @ Most opcodable cases have special opcodes at the end of the definition.
+  @ Prepare this place to be available in r0
+  movs r0, r2 @ Entry point
+  bl suchedefinitionsende @ Search for end of Definition
+
   cmp r1, #1
   bne.n .interpret_opcodierbar_rechenlogik
     @------------------------------------------------------------------------------
@@ -252,32 +257,45 @@ interpret:
     @ Exactly one constant.
 
     @ Is constant small enough to fit in one Byte ?
-    popda r3 @ Fetch constant
-
-    movs r0, #0xFF  @ Mask for 8 Bits
-    ands r0, r3
-    cmp r0, r3
+    movs r1, #0xFF  @ Mask for 8 Bits
+    ands r1, tos
+    cmp r1, tos
     bne.n 2f
     @ Equal ? Constant fits in 8 Bits.
 
-    movs r0, r2 @ Entry point
-    bl suchedefinitionsende @ Search for end of Definition
-    adds r0, #2 @ Two more for Register-Opcode
-    ldrh r0, [r0] @ Fetch Opcode
-    orrs r0, r3 @ Put constant into Opcode
-    b.n 3f
+      ldrh r0, [r0, #2] @ Fetch Opcode, two more for Register-Opcode
+      orrs tos, r0 @ Put constant into Opcode
+      bl hkomma
+      b.n 1b @ Finished.
+      
+2:  
 
-2:  @ Larger constant. Put it in register first.
-    pushda r3
-4:  pushdaconst 0
+    .ifndef m0core
+      @ M3/M4 cores offer additional opcodes with 12-bit encoded constants.
+      bl twelvebitencoding
+
+      cmp tos, #0
+      drop   @ Preserves Flags !
+      beq 3f
+        @ Encoding of constant within 12 bits is possible. Generate Opcode !
+        ldr r0, [r0, #4] @ Fetch 32-Bit-Opcode, this is possible without alignment here,
+                         @ Four more for M3/M4-Opcodes
+        orrs tos, r0
+        bl reversekomma
+        b.n 1b @ Finished.
+3:
+    .endif
+
+.interpret_opcodieren_ueber_r0:
+    @ Large constant without short encoding possibility. Put it in register first.
+    pushdaconst 0
     bl registerliteralkomma
 
-    movs r0, r2 @ Entry point
-    bl suchedefinitionsende @ Search for end of Definition
-    ldrh r0, [r0] @ Fetch Opcode
-3:  pushda r0
+    pushdatos
+    ldrh tos, [r0] @ Fetch Opcode
     bl hkomma
     b.n 1b @ Finished.
+
 
 .interpret_opcodierbar_rechenlogik:
   cmp r1, #2
@@ -289,7 +307,8 @@ interpret:
     cmp r3, #1
     bne.n .interpret_faltoptimierung @ Opcode only with exactly one constant. Do folding with two constants or more in this case !
     @ Exactly one constant. M0 needs all constant sizes available in registers.
-    b.n 4b @ Simply reuse code as for plus and minus.
+    b.n .interpret_opcodieren_ueber_r0 @ Simply reuse code as for plus and minus.
+
 
 .interpret_opcodierbar_gleichungleich:
   cmp r1, #3
@@ -302,26 +321,39 @@ interpret:
     @ Exactly one constant.
 
     @ Is constant small enough to fit in one Byte ?
-    popda r3 @ Fetch constant
-
-    movs r0, #0xFF  @ Mask for 8 Bits
-    ands r0, r3
-    cmp r0, r3
+    movs r1, #0xFF  @ Mask for 8 Bits
+    ands r1, tos
+    cmp r1, tos
     bne.n 2f
     @ Equal ? Constant fits in 8 Bits.
 
-      ldr r0, =0x3E00 @ Opcode subs r6, #0
-      orrs r0, r3
-      pushda r0
+      ldr r1, =0x3E00 @ Opcode subs r6, #0
+      orrs tos, r1
       bl hkomma
 
-      adds r2, #4 @ Skip first two instructions of definition
+4:    adds r2, #4 @ Skip first two instructions of definition
       pushda r2
       bl inlinekomma
       b.n 1b @ Finished.
  
-2:  @ Larger constant. Put it in register first.
-    pushda r3
+2:  
+
+    .ifndef m0core
+      @ M3/M4 cores offer additional opcodes with 12-bit encoded constants.
+      bl twelvebitencoding
+
+      cmp tos, #0
+      drop   @ Preserves Flags !
+      beq 3f
+        @ Encoding of constant within 12 bits is possible.
+        ldr r1, =0xF1B60600 @ Opcode subs tos, tos, #imm12
+        orrs tos, r1
+        bl reversekomma
+        b.n 4b
+3:
+    .endif    
+
+    @ Larger constant. Put it in register first.
     pushdaconst 0
     bl registerliteralkomma
 
@@ -329,7 +361,6 @@ interpret:
     pushda r2
     bl inlinekomma
     b.n 1b @ Finished.
-
 
 
 .interpret_opcodierbar_schieben:
@@ -347,22 +378,20 @@ interpret:
     bne.n 2f
     b.n 1b @ Shift by zero ? No Opcode to generate. Finished !
 
-2:  movs r0, #0x1F @ 5 Bits
-    ands r0, r3
-    cmp r0, r3 @ Does shift fit in 5 Bits ?
+2:  movs r2, #0x1F @ 5 Bits
+    ands r2, r3
+    cmp r2, r3 @ Does shift fit in 5 Bits ?
     beq.n 3f
-      @ Shift more than 31 Places - Zero out TOS:
-      pushdaconstw 0x2600 @ Opcode movs tos, #0
+      @ Shift more than 31 Places - Zero out TOS or replace by an asrs tos, #31 opcode:
+      pushdatos
+      ldrh tos, [r0, #2] @ Fetch next opcode
       bl hkomma
-      b.n 1b
+      b.n 1b @ Finished.
 
-3:  movs r0, r2 @ Entry point
-    bl suchedefinitionsende @ Search for end of Definition
-    ldrh r0, [r0] @ Fetch Opcode
-
+3:  pushdatos
+    ldrh tos, [r0] @ Fetch Opcode
     lsls r3, #6  @ Shift places accordingly
-    orrs r0, r3  @ Build shift opcode
-    pushda r0
+    orrs tos, r3  @ Build shift opcode
     bl hkomma
     b.n 1b @ Finished.
 
@@ -373,17 +402,14 @@ interpret:
     @------------------------------------------------------------------------------
     @ Write memory
 
-    movs r0, r2 @ Entry point
-    bl suchedefinitionsende @ Search for end of Definition
-
     cmp r3, #1
     bne.n 2f @ Exactly one constant
 
     pushdaconst 0
     bl registerliteralkomma
 
-    ldrh r0, [r0] @ Fetch Opcode
-    pushda r0
+    pushdatos
+    ldrh tos, [r0] @ Fetch Opcode
     bl hkomma
    
     @ Compile Drop-Opcode
@@ -398,19 +424,45 @@ interpret:
     pushdaconst 1
     bl registerliteralkomma
 
-    adds r0, #2  @ Skip to next opcode
-    ldrh r0, [r0] @ Fetch Opcode
-     pushda r0
+    pushdatos
+    ldrh tos, [r0, #2] @ Fetch next Opcode
     bl hkomma
     b.n 1b @ Finished.
 
-    @------------------------------------------------------------------------------
-    @ Special cases that do not have their own handling in interpret.
-    @ They have their own handlers at the end of definition that is called here.
 .interpret_opcodierbar_andere:
 
-  movs r0, r2
-  bl suchedefinitionsende
+  .ifndef m0core @ This is for M3/M4 only
+  @------------------------------------------------------------------------------
+  @ Check for architecture-specific special cases:
+
+  cmp r1, #6
+  bne.n 2f
+    @------------------------------------------------------------------------------
+    @ Logic with special opcodings available on M3/M4 only
+    cmp r3, #1
+    bne .interpret_faltoptimierung @ Opcode only with exactly one constant. Do folding with two constants or more in this case !
+
+    @ Check if constant available can be encoded as 12-bit-bitmask
+    bl twelvebitencoding
+
+    cmp tos, #0
+    drop   @ Preserves Flags !
+    beq .interpret_opcodieren_ueber_r0 @ Simply reuse code as for plus and minus.
+
+      @ 12-bit-encoding is possible. Generate the opcode :-)
+
+      ldr r0, [r0, #2] @ Fetch 32-Bit Thumb-2 Opcode, this can be done on M3/M4 without alignment
+                   @ Two more for the advanced M3-Opcode
+      orrs tos, r0
+      bl reversekomma
+      b.n 1b @ Finished.
+2:
+  .endif
+
+  @------------------------------------------------------------------------------
+  @ Special cases that do not have their own handling in interpret.
+  @ They have their own handlers at the end of definition that is called here.
+
   adds r0, #1 @ One more for Thumb
   blx r0
   b.n 1b @ Finished.  
@@ -420,7 +472,7 @@ interpret:
 konstantenschreiben: @ Special internal entry point with register dependencies.
 @ -----------------------------------------------------------------------------
     push {lr}
-    cmp r3, #0 @ Null Konstanten liegen bereit ? Zero constants available ?
+    cmp r3, #0   @ Null Konstanten liegen bereit ? Zero constants available ?
     beq.n 7f     @ Dann ist nichts zu tun.         Nothing to write.
 
 .konstanteninnenschleife:

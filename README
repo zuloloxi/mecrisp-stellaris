@@ -580,6 +580,9 @@ Deep insights:
                                           On M0: A movs-lsls-adds... sequence
                                           M3/M4: movs / movs-mvns / movw / movw-movt
 
+       12bitencoding    ( x -- x false | bitmask true )
+                                          Can x be encoded as 12-bit immediate ?
+
 ;------------------------------------------------------------------------------
 ; Flags and inventory  (speciality!)
 ;------------------------------------------------------------------------------

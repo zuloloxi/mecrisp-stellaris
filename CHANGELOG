@@ -123,3 +123,16 @@
 
   - New target: STM32F429ZIT6 on STM F429 Discovery
   - Instruction set emulator for Cortex M0 included
+
+23.04.2014, Matthias Koch, Mecrisp-Stellaris 1.0.4:
+
+  - Added Intel Hex style binaries for STM targets
+  - Improved code generation for do and ?do
+  - Fixed minor issue with arshift when opcoded 
+      with folding constant >= 32
+  - Added bit rotations ror and rol
+  - M3/M4 only: 
+    - Added 12bitencoding
+    - Faster opcodes for inline literals,
+        calculations, logic and comparisions
+    - Included new opcodes into disassembler-m3

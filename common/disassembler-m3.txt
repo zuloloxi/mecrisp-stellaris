@@ -144,6 +144,29 @@
   endcase
 ;
 
+: rotateleft  ( x u -- x ) 0 ?do rol loop ;
+: rotateright ( x u -- x ) 0 ?do ror loop ;
+
+: imm12. ( Opcode -- Opcode )
+  dup $FF and                 \ Bits 0-7
+  over  4 rshift $700 and or  \ Bits 8-10
+  over 15 rshift $800 and or  \ Bit  11
+  ( Opcode imm12 )
+  dup 8 rshift
+  case
+    0 of $FF and                                  const. endof \ Plain 8 Bit Constant
+    1 of $FF and                 dup 16 lshift or const. endof \ 0x00XY00XY
+    2 of $FF and        8 lshift dup 16 lshift or const. endof \ 0xXY00XY00
+    3 of $FF and dup 8 lshift or dup 16 lshift or const. endof \ 0xXYXYXYXY
+
+    \ Shifted 8-Bit Constant
+    swap
+      \ Otherwise, the 32-bit constant is rotated left until the most significant bit is bit[7]. The size of the left
+      \ rotation is encoded in bits[11:7], overwriting bit[7]. imm12 is bits[11:0] of the result.
+      dup 7 rshift swap $7F and $80 or swap rotateright const.
+  endcase
+;
+
 \ --------------------------------------
 \  Name resolving for blx r0 sequences
 \ --------------------------------------
@@ -195,13 +218,34 @@
                                                    then
                               then
 
-  case \ Decode "singular" opcodes used in Mecrisp-Stellaris:
+  \ 
+  \ 1111 0i0x xxxs nnnn 0iii dddd iiii iiii
+  \ F    0    0    0    0    0    0    0
+  \ F    A    0    0    8    0    0    0
 
-    $F04F36FF of ." mov r6 #FFFFFFFF" endof
+  $F0000000 $FA008000 opcode? not if else \ Data processing, modified 12-bit immediate
+                                dup 21 rshift $F and
+                                case
+                                  %0000 of ." and" endof
+                                  %0001 of ." bic" endof
+                                  %0010 of ." orr" endof
+                                  %0011 of ." orn" endof
+                                  %0100 of ." eor" endof
+                                  %1000 of ." add" endof
+                                  %1010 of ." adc" endof
+                                  %1011 of ." sbc" endof
+                                  %1101 of ." sub" endof
+                                  %1110 of ." rsb" endof
+                                  ." ?"
+                                endcase
+                                dup 1 20 lshift and if ." s" then \ Set Flags ?
+                                8 reg16. 16 reg16. \ Destionation and Source registers
+                                imm12.
+                              then
 
-    $F1144400 of ." adds r4 #80000000" endof
-    $F1A44400 of ." sub r4 #80000000" endof
-    $F1BE0601 of ." subs r6, lr, #1" endof
+  case \ Decode remaining "singular" opcodes used in Mecrisp-Stellaris:
+
+    $EA5F0676 of ." rors r6 r6 #1" endof
 
     $F8476D04 of ." str r6 [ r7 #-4 ]!" endof
     $F8576026 of ." ldr r6 [ r7 r6 lsl #2 ]" endof

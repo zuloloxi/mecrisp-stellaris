@@ -107,30 +107,30 @@ uart_init:
 
   @ Most of the peripherals are connected to APB2.  Turn on the
   @ clocks for the interesting peripherals and all GPIOs.
-  ldr r6, = RCC_APB2ENR
+  ldr r1, = RCC_APB2ENR
   ldr r0, = AFIOEN|IOPAEN|IOPBEN|IOPCEN|IOPDEN|USART1EN  @ |IOPEEN|IOPFEN|IOPGEN|
-  str r0, [r6]
+  str r0, [r1]
 
   @ Set PORTA pins in alternate function mode
   @ Put PA9  (TX) to alternate function output push-pull at 50 MHz
   @ Put PA10 (RX) to floating input
-  ldr r6, = GPIOA_CRH
+  ldr r1, = GPIOA_CRH
   ldr r0, = 0x000004B0
-  str r0, [r6]
+  str r0, [r1]
 
   @ Configure BRR by deviding the bus clock with the baud rate
 
-  ldr r6, = USART1_BRR
+  ldr r1, = USART1_BRR
   @ ldr r0, = 0x00000341  @  9600 bps
   @ ldr r0, = 0x000000D0  @ 38400 bps
   @ ldr r0, = 0x00000045  @ 115200 bps
   ldr r0, = 0x00000046  @ 115200 bps, ein ganz kleines bisschen langsamer...
-  str r0, [r6]
+  str r0, [r1]
 
   @ Enable the USART, TX, and RX circuit
-  ldr r6, =USART1_CR1
+  ldr r1, =USART1_CR1
   ldr r0, =BIT13+BIT3+BIT2 @ USART_CR1_UE | USART_CR1_TE | USART_CR1_RE
-  str r0, [r6]
+  str r0, [r1]
 
   bx lr
 

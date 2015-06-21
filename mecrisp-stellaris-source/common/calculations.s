@@ -29,6 +29,11 @@
   adds tos, r0 @ Opcode for use with literal in register
   adds tos, #0 @ Opcode for use with byte literal
 
+  .ifndef m0core @ Opcode with 12-bit encoded constant only available on M3/M4
+  .hword 0x0600
+  .hword 0xF116
+  .endif @ Opcode adds tos, tos, #imm12
+
 @ -----------------------------------------------------------------------------
   Wortbirne Flag_inline|Flag_opcodierbar_Plusminus, "-" @ ( x1 x2 -- x1-x2 )
                       @ Subtracts x2 from x1.
@@ -38,6 +43,11 @@
   bx lr
   subs tos, r0 @ Opcode for use with literal in register
   subs tos, #0 @ Opcode for use with byte literal
+
+  .ifndef m0core @ Opcode with 12-bit encoded constant only available on M3/M4
+  .hword 0x0600
+  .hword 0xF1B6
+  .endif @ Opcode subs tos, tos, #imm12
 
 @ -----------------------------------------------------------------------------
   Wortbirne Flag_foldable_1|Flag_inline, "1-" @ ( u -- u-1 )
@@ -76,10 +86,17 @@
 @ -----------------------------------------------------------------------------
   Wortbirne Flag_foldable_1|Flag_inline, "abs" @ ( n1 -- |n1| )
 @ -----------------------------------------------------------------------------
+  .ifdef m0core
   cmp tos, #0
   bpl 1f
   rsbs tos, tos, #0
 1:bx lr
+  .else
+  cmp tos, #0
+  it mi
+  rsbsmi tos, tos, #0
+  bx lr
+  .endif
 
 @ -----------------------------------------------------------------------------
   Wortbirne Flag_foldable_2, "u/mod" @ ( u1 u2 -- rem quot )

@@ -97,22 +97,38 @@ of_opcodiereinsprung:
 1:drop
 
   @ r0 contains constant for this case comparision.
+  pushda r0
 
     @ Is constant small enough to fit in one Byte ?
     movs r1, #0xFF  @ Mask for 8 Bits
-    ands r1, r0
-    cmp r0, r1
+    ands r1, tos
+    cmp r1, tos
     bne.n 2f
     @ Equal ? Constant fits in 8 Bits.
 
     ldr r1, =0x2E00 @ Opcode cmp r6, #0
-    orrs r0, r1     @ Or together with constant
-    pushda r0
+    orrs tos, r1     @ Or together with constant
     bl hkomma
     b.n of_opcodiereinsprung
 
-2:@ Generate constant for comparision
-  pushda r0
+2:  
+
+    .ifndef m0core
+      @ M3/M4 cores offer additional opcodes with 12-bit encoded constants.
+      bl twelvebitencoding
+
+      cmp tos, #0
+      drop   @ Preserves Flags !
+      beq 3f
+        @ Encoding of constant within 12 bits is possible.
+        ldr r0, =0xF1B60F00 @ Opcode subs pc, tos, #imm12 = cmp tos, #imm12
+        orrs tos, r0
+        bl reversekomma
+        b.n of_opcodiereinsprung
+3:
+    .endif  
+
+  @ Generate constant for comparision
   pushdaconst 0
   bl registerliteralkomma
 

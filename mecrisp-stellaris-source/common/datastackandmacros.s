@@ -179,6 +179,12 @@ irq_vektor_\Name:
 .equ Flag_opcodierbar_Speicherschreiben, Flag_foldable|Flag_opcodable|5
 .equ Flag_opcodierbar_Spezialfall,       Flag_foldable|Flag_opcodable|0
 
+  .ifdef m0core @ No special handling of this on M0
+.equ Flag_opcodierbar_Rechenlogik_M3,    Flag_opcodierbar_Rechenlogik
+  .else         @ Additional optimisations only available on M3/M4
+.equ Flag_opcodierbar_Rechenlogik_M3,    Flag_foldable|Flag_opcodable|6
+  .endif
+
 @ -----------------------------------------------------------------------------
 @ Makros zum Bauen des Dictionary
 @ Macros for building dictionary

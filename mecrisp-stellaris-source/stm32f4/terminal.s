@@ -114,27 +114,27 @@ Setup_Clocks:
         @ will switch from the internal 8 MHz clock (HSI) to the
         @ external 8 MHz clock (HSE).
 
-        ldr r6, = RCC_CR
+        ldr r1, = RCC_CR
         mov r0, HSEON
-        str r0, [r6]            @ turn on the external clock
+        str r0, [r1]            @ turn on the external clock
 
 awaitHSE:
-        ldr r0, [r6]
+        ldr r0, [r1]
         and r0, # HSERDY
         beq awaitHSE            @ hang here until external clock is stable
 
         @ at this point, the HSE is running and stable but I suppose we have not yet
         @ switched Sysclk to use it.
 
-        ldr r6, = RCC_CFGR
+        ldr r1, = RCC_CFGR
         mov r0, # 1
-        str r0, [r6]            @ switch to the external clock
+        str r0, [r1]            @ switch to the external clock
         
         @ Turn off the HSION bit
-        ldr r6, = RCC_CR
-        ldr r0, [r6]
+        ldr r1, = RCC_CR
+        ldr r0, [r1]
         and r0, 0xFFFFFFFE      @ Zero the 0th bit
-        str r0, [r6]
+        str r0, [r1]
 
         bx lr
 
@@ -143,26 +143,25 @@ Setup_UART:
 @ -----------------------------------------------------------------------------
 
         @ Enable the CCM RAM and all GPIO peripheral clock
-        ldr r6, = RCC_AHB1ENR
+        ldr r1, = RCC_AHB1ENR
         ldr r0, = BIT20+0x1FF
-        str r0, [r6]
+        str r0, [r1]
 
         @ Set PORTA pins in alternate function mode
-        ldr r6, = GPIOA_MODER
-        ldr r0, [r6]
-        ldr r5, = 0xA0
-        orr r0, r5
-        str r0, [r6]
+        ldr r1, = GPIOA_MODER
+        ldr r0, [r1]
+        orrs r0, #0xA0
+        str r0, [r1]
 
         @ Set alternate function 7 to enable USART2 pins on Port A
-        ldr r6, = GPIOA_AFRL
+        ldr r1, = GPIOA_AFRL
         ldr r0, = 0x7700              @ Alternate function 7 for TX and RX pins of USART2 on PORTA 
-        str r0, [r6]
+        str r0, [r1]
 
         @ Enable the USART2 peripheral clock by setting bit 17
-        ldr r6, = RCC_APB1ENR
+        ldr r1, = RCC_APB1ENR
         ldr r0, = BIT17
-        str r0, [r6]
+        str r0, [r1]
 
   @ Baudrate bestimmen: Bit 11-4 Teiler, Bit 3-0 Bruchterm
 
@@ -177,18 +176,18 @@ Setup_UART:
 
   @ Läuft aber hier mit 8 MHz.
 
-        ldr r6, = USART2_BRR
+        ldr r1, = USART2_BRR
         @ ldr r0, = 0x00000341  @  9600 bps
         @ ldr r0, = 0x000000D0  @ 38400 bps
         @ ldr r0, = 0x00000045  @ 115200 bps
         ldr r0, = 0x00000046  @ 115200 bps, ein ganz kleines bisschen langsamer...
-        str r0, [r6]
+        str r0, [r1]
 
         @ set TE (transmit enable) (bit 3), and RE (receiver enable) (bit 2) 
         @ this should cause an idle frame to be sent
-        ldr r6, =USART2_CR1
+        ldr r1, =USART2_CR1
         ldr r0, =BIT13+BIT3+BIT2
-        str r0, [r6]
+        str r0, [r1]
 
         bx lr
 
@@ -199,11 +198,6 @@ uart_init: @ ( -- )
 
   bl Setup_Clocks
   bl Setup_UART
-
-  @ Leuchtdioden-Anschlüsse vorbereiten
-@  ldr r6, = GPIOD_MODER
-@  ldr r0, = 0x55000000 @ Alle vier Leuchtdioden als Ausgänge !
-@  str r0, [r6]
 
   pop {pc}
 
@@ -222,12 +216,6 @@ emit: @ ( c -- ) Sendet Wert in r0
 
    ldr r2, =USART2_DR
    strb r0, [r2]          @ Output the character
-
-   @ An den Leuchtdioden ausgeben:
-@   ldr r2, = GPIOD_ODR    @  point to Port D output data register
-@   lsls r0, #12
-@   str r0, [r2]
-
 
    pop {r0, r1, r2}
    bx lr
