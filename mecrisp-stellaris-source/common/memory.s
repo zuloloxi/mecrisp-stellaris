@@ -92,23 +92,42 @@ move:  @ ( Quelladdr Zieladdr Byteanzahl -- ) ( Source Destination Count -- )
   Wortbirne Flag_inline|Flag_opcodierbar_Speicherschreiben, "!" @ ( x 32-addr -- )
 @ Given a value 'x' and a cell-aligned address 'addr', stores 'x' to memory at 'addr', consuming both.
 @ -----------------------------------------------------------------------------
-  ldm psp!, {w, x} @ X is the new TOS after the store completes.
-  str w, [tos]     @ Popping both saves a cycle.
-  movs tos, x
+  ldm psp!, {r0, r1} @ X is the new TOS after the store completes.
+  str r0, [tos]      @ Popping both saves a cycle.
+  movs tos, r1
   bx lr
-  str tos, [r0] @ For opcoding with one constant
-  str r1, [r0]  @ For opcoding with two constants
+
+  @ For opcoding with one constant
+  str tos, [r0]
+  bx lr
+
+  @ For opcoding with two constants
+  str r1, [r0]
+  bx lr
 
 @ -----------------------------------------------------------------------------
-  Wortbirne Flag_inline, "+!" @ ( x 32-addr -- )
+  Wortbirne Flag_inline|Flag_opcodierbar_Speicherschreiben, "+!" @ ( x 32-addr -- )
                                @ Adds 'x' to the memory cell at 'addr'.
 @ -----------------------------------------------------------------------------
-  ldm psp!, {w, x} @ X is the new TOS after the store completes.
-  ldr y, [tos]       @ Load the current cell value
-  adds y, w            @ Do the add
-  str y, [tos]       @ Store it back
-  movs tos, x
+  ldm psp!, {r0, r1} @ X is the new TOS after the store completes.
+  ldr  r2, [tos]     @ Load the current cell value
+  adds r2, r0        @ Do the add
+  str  r2, [tos]     @ Store it back
+  movs tos, r1
   bx lr
+
+  @ For opcoding with one constant
+  ldr r2, [r0]
+  adds r2, tos
+  str r2, [r0]
+  bx lr
+
+  @ For opcoding with two constants
+  ldr r2, [r0]
+  adds r2, r1
+  str r2, [r0]
+  bx lr
+
 
 @ -----------------------------------------------------------------------------
   Wortbirne Flag_inline, "h@" @ ( 16-addr -- x )
@@ -121,22 +140,40 @@ move:  @ ( Quelladdr Zieladdr Byteanzahl -- ) ( Source Destination Count -- )
   Wortbirne Flag_inline|Flag_opcodierbar_Speicherschreiben, "h!" @ ( x 16-addr -- )
 @ Given a value 'x' and an 16-bit-aligned address 'addr', stores 'x' to memory at 'addr', consuming both.
 @ -----------------------------------------------------------------------------
-  ldm psp!, {w, x} @ X is the new TOS after the store completes.
-  strh w, [tos]     @ Popping both saves a cycle.
-  movs tos, x
+  ldm psp!, {r0, r1} @ X is the new TOS after the store completes.
+  strh r0, [tos]     @ Popping both saves a cycle.
+  movs tos, r1
   bx lr
-  strh tos, [r0] @ For opcoding with one constant
-  strh r1, [r0]  @ For opcoding with two constants
+
+  @ For opcoding with one constant
+  strh tos, [r0]
+  bx lr
+
+  @ For opcoding with two constants
+  strh r1, [r0]
+  bx lr
 
 @ -----------------------------------------------------------------------------
-  Wortbirne Flag_inline, "h+!" @ ( x 16-addr -- )
+  Wortbirne Flag_inline|Flag_opcodierbar_Speicherschreiben, "h+!" @ ( x 16-addr -- )
                                 @ Adds 'x' to the memory cell at 'addr'.
 @ -----------------------------------------------------------------------------
-  ldm psp!, {w, x} @ X is the new TOS after the store completes.
-  ldrh y, [tos]       @ Load the current cell value
-  adds y, w            @ Do the add
-  strh y, [tos]       @ Store it back
-  movs tos, x
+  ldm psp!, {r0, r1} @ X is the new TOS after the store completes.
+  ldrh r2, [tos]     @ Load the current cell value
+  adds r2, r0        @ Do the add
+  strh r2, [tos]     @ Store it back
+  movs tos, r1
+  bx lr
+
+  @ For opcoding with one constant
+  ldrh r2, [r0]
+  adds r2, tos
+  strh r2, [r0]
+  bx lr
+
+  @ For opcoding with two constants
+  ldrh r2, [r0]
+  adds r2, r1
+  strh r2, [r0]
   bx lr
 
 @ -----------------------------------------------------------------------------
@@ -150,64 +187,118 @@ move:  @ ( Quelladdr Zieladdr Byteanzahl -- ) ( Source Destination Count -- )
   Wortbirne Flag_inline|Flag_opcodierbar_Speicherschreiben, "c!" @ ( x 8-addr -- )
 @ Given a value 'x' and an 8-bit-aligned address 'addr', stores 'x' to memory at 'addr', consuming both.
 @ -----------------------------------------------------------------------------
-  ldm psp!, {w, x} @ X is the new TOS after the store completes.
-  strb w, [tos]     @ Popping both saves a cycle.
-  movs tos, x
+  ldm psp!, {r0, r1} @ X is the new TOS after the store completes.
+  strb r0, [tos]     @ Popping both saves a cycle.
+  movs tos, r1
   bx lr
-  strb tos, [r0] @ For opcoding with one constant
-  strb r1, [r0]  @ For opcoding with two constants
+
+  @ For opcoding with one constant
+  strb tos, [r0]
+  bx lr
+
+  @ For opcoding with two constants
+  strb r1, [r0]
+  bx lr
 
 @ -----------------------------------------------------------------------------
-  Wortbirne Flag_inline, "c+!" @ ( x 8-addr -- )
+  Wortbirne Flag_inline|Flag_opcodierbar_Speicherschreiben, "c+!" @ ( x 8-addr -- )
                                @ Adds 'x' to the memory cell at 'addr'.
 @ -----------------------------------------------------------------------------
-  ldm psp!, {w, x} @ X is the new TOS after the store completes.
-  ldrb y, [tos]       @ Load the current cell value
-  adds y, w            @ Do the add
-  strb y, [tos]       @ Store it back
-  movs tos, x
+  ldm psp!, {r0, r1} @ X is the new TOS after the store completes.
+  ldrb r2, [tos]     @ Load the current cell value
+  adds r2, r0        @ Do the add
+  strb r2, [tos]     @ Store it back
+  movs tos, r1
+  bx lr
+
+  @ For opcoding with one constant
+  ldrb r2, [r0]
+  adds r2, tos
+  strb r2, [r0]
+  bx lr
+
+  @ For opcoding with two constants
+  ldrb r2, [r0]
+  adds r2, r1
+  strb r2, [r0]
   bx lr
 
 @ -----------------------------------------------------------------------------
-  Wortbirne Flag_inline, "bis!" @ ( x 32-addr -- )  Set bits
+  Wortbirne Flag_inline|Flag_opcodierbar_Speicherschreiben, "bis!" @ ( x 32-addr -- )  Set bits
   @ Setzt die Bits in der Speicherstelle
 @ -----------------------------------------------------------------------------
-  ldm psp!, {w, x} @ X is the new TOS after the store completes.
-  ldr y, [tos] @ Alten Inhalt laden
-  orrs y, w     @ Hinzuverodern
-  str y, [tos] @ Zurückschreiben
-  movs tos, x
+  ldm psp!, {r0, r1} @ X is the new TOS after the store completes.
+  ldr  r2, [tos] @ Alten Inhalt laden
+  orrs r2, r0    @ Hinzuverodern
+  str  r2, [tos] @ Zurückschreiben
+  movs tos, r1
+  bx lr
+
+  @ For opcoding with one constant
+  ldr  r2, [r0]
+  orrs r2, tos
+  str  r2, [r0]
+  bx lr
+
+  @ For opcoding with two constants
+  ldr  r2, [r0]
+  orrs r2, r1
+  str  r2, [r0]
   bx lr
 
 @ -----------------------------------------------------------------------------
-  Wortbirne Flag_inline, "bic!" @ ( x 32-addr -- )  Clear bits
+  Wortbirne Flag_inline|Flag_opcodierbar_Speicherschreiben, "bic!" @ ( x 32-addr -- )  Clear bits
   @ Löscht die Bits in der Speicherstelle
 @ -----------------------------------------------------------------------------
-  ldm psp!, {w, x} @ X is the new TOS after the store completes.
-  ldr y, [tos] @ Alten Inhalt laden
-  bics y, w     @ Bits löschen
-  str y, [tos] @ Zurückschreiben
-  movs tos, x
+  ldm psp!, {r0, r1} @ X is the new TOS after the store completes.
+  ldr  r2, [tos] @ Alten Inhalt laden
+  bics r2, r0    @ Bits löschen
+  str  r2, [tos] @ Zurückschreiben
+  movs tos, r1
+  bx lr
+
+  @ For opcoding with one constant
+  ldr  r2, [r0]
+  bics r2, tos
+  str  r2, [r0]
+  bx lr
+
+  @ For opcoding with two constants
+  ldr  r2, [r0]
+  bics r2, r1
+  str  r2, [r0]
   bx lr
 
 @ -----------------------------------------------------------------------------
-  Wortbirne Flag_inline, "xor!" @ ( x 32-addr -- )  Toggle bits
+  Wortbirne Flag_inline|Flag_opcodierbar_Speicherschreiben, "xor!" @ ( x 32-addr -- )  Toggle bits
   @ Wechselt die Bits in der Speicherstelle
 @ -----------------------------------------------------------------------------
-  ldm psp!, {w, x} @ X is the new TOS after the store completes.
-  ldr y, [tos] @ Alten Inhalt laden
-  eors y, w     @ Bits umkehren
-  str y, [tos] @ Zurückschreiben
-  movs tos, x
+  ldm psp!, {r0, r1} @ X is the new TOS after the store completes.
+  ldr  r2, [tos] @ Alten Inhalt laden
+  eors r2, r0    @ Bits umkehren
+  str  r2, [tos] @ Zurückschreiben
+  movs tos, r1
+  bx lr
+
+  @ For opcoding with one constant
+  ldr  r2, [r0]
+  eors r2, tos
+  str  r2, [r0]
+  bx lr
+
+  @ For opcoding with two constants
+  ldr  r2, [r0]
+  eors r2, r1
+  str  r2, [r0]
   bx lr
 
 @ -----------------------------------------------------------------------------
-  Wortbirne Flag_inline, "bit@" @ ( x 32-addr -- )  Check bits
+  Wortbirne Flag_inline, "bit@" @ ( x 32-addr -- Flag )  Check bits
   @ Prüft, ob Bits in der Speicherstelle gesetzt sind
 @ -----------------------------------------------------------------------------
-  ldm psp!, {w}  @ Bitmaske holen
+  ldm psp!, {r0} @ Bitmaske holen
   ldr tos, [tos] @ Speicherinhalt holen
-  ands tos, w    @ Bleibt nach AND etwas über ?
+  ands tos, r0   @ Bleibt nach AND etwas über ?
 
   .ifdef m0core
   beq 1f
@@ -221,45 +312,81 @@ move:  @ ( Quelladdr Zieladdr Byteanzahl -- ) ( Source Destination Count -- )
   .endif
 
 @ -----------------------------------------------------------------------------
-  Wortbirne Flag_inline, "hbis!" @ ( x 16-addr -- )  Set bits
+  Wortbirne Flag_inline|Flag_opcodierbar_Speicherschreiben, "hbis!" @ ( x 16-addr -- )  Set bits
   @ Setzt die Bits in der Speicherstelle
 @ -----------------------------------------------------------------------------
-  ldm psp!, {w, x} @ X is the new TOS after the store completes.
-  ldrh y, [tos] @ Alten Inhalt laden
-  orrs y, w     @ Hinzuverodern
-  strh y, [tos] @ Zurückschreiben
-  movs tos, x
+  ldm psp!, {r0, r1} @ X is the new TOS after the store completes.
+  ldrh r2, [tos] @ Alten Inhalt laden
+  orrs r2, r0    @ Hinzuverodern
+  strh r2, [tos] @ Zurückschreiben
+  movs tos, r1
+  bx lr
+
+  @ For opcoding with one constant
+  ldrh r2, [r0]
+  orrs r2, tos
+  strh r2, [r0]
+  bx lr
+
+  @ For opcoding with two constants
+  ldrh r2, [r0]
+  orrs r2, r1
+  strh r2, [r0]
   bx lr
 
 @ -----------------------------------------------------------------------------
-  Wortbirne Flag_inline, "hbic!" @ ( x 16-addr -- )  Clear bits
+  Wortbirne Flag_inline|Flag_opcodierbar_Speicherschreiben, "hbic!" @ ( x 16-addr -- )  Clear bits
   @ Setzt die Bits in der Speicherstelle
 @ -----------------------------------------------------------------------------
-  ldm psp!, {w, x} @ X is the new TOS after the store completes.
-  ldrh y, [tos] @ Alten Inhalt laden
-  bics y, w     @ Hinzuverodern
-  strh y, [tos] @ Zurückschreiben
-  movs tos, x
+  ldm psp!, {r0, r1} @ X is the new TOS after the store completes.
+  ldrh r2, [tos] @ Alten Inhalt laden
+  bics r2, r0    @ Hinzuverodern
+  strh r2, [tos] @ Zurückschreiben
+  movs tos, r1
+  bx lr
+
+  @ For opcoding with one constant
+  ldrh r2, [r0]
+  bics r2, tos
+  strh r2, [r0]
+  bx lr
+
+  @ For opcoding with two constants
+  ldrh r2, [r0]
+  bics r2, r1
+  strh r2, [r0]
   bx lr
 
 @ -----------------------------------------------------------------------------
-  Wortbirne Flag_inline, "hxor!" @ ( x 16-addr -- )  Toggle bits
+  Wortbirne Flag_inline|Flag_opcodierbar_Speicherschreiben, "hxor!" @ ( x 16-addr -- )  Toggle bits
   @ Setzt die Bits in der Speicherstelle
 @ -----------------------------------------------------------------------------
-  ldm psp!, {w, x} @ X is the new TOS after the store completes.
-  ldrh y, [tos] @ Alten Inhalt laden
-  eors y, w     @ Hinzuverodern
-  strh y, [tos] @ Zurückschreiben
-  movs tos, x
+  ldm psp!, {r0, r1} @ X is the new TOS after the store completes.
+  ldrh r2, [tos] @ Alten Inhalt laden
+  eors r2, r0    @ Hinzuverodern
+  strh r2, [tos] @ Zurückschreiben
+  movs tos, r1
+  bx lr
+
+  @ For opcoding with one constant
+  ldrh r2, [r0]
+  eors r2, tos
+  strh r2, [r0]
+  bx lr
+
+  @ For opcoding with two constants
+  ldrh r2, [r0]
+  eors r2, r1
+  strh r2, [r0]
   bx lr
 
 @ -----------------------------------------------------------------------------
-  Wortbirne Flag_inline, "hbit@" @ ( x 16-addr -- )  Check bits
+  Wortbirne Flag_inline, "hbit@" @ ( x 16-addr -- Flag )  Check bits
   @ Prüft, ob Bits in der Speicherstelle gesetzt sind
 @ -----------------------------------------------------------------------------
-  ldm psp!, {w}  @ Bitmaske holen
+  ldm psp!, {r0}  @ Bitmaske holen
   ldrh tos, [tos] @ Speicherinhalt holen
-  ands tos, w    @ Bleibt nach AND etwas über ?
+  ands tos, r0    @ Bleibt nach AND etwas über ?
 
   .ifdef m0core
   beq 1f
@@ -273,45 +400,81 @@ move:  @ ( Quelladdr Zieladdr Byteanzahl -- ) ( Source Destination Count -- )
   .endif
 
 @ -----------------------------------------------------------------------------
-  Wortbirne Flag_inline, "cbis!" @ ( x 8-addr -- )  Set bits
+  Wortbirne Flag_inline|Flag_opcodierbar_Speicherschreiben, "cbis!" @ ( x 8-addr -- )  Set bits
   @ Setzt die Bits in der Speicherstelle
 @ -----------------------------------------------------------------------------
-  ldm psp!, {w, x} @ X is the new TOS after the store completes.
-  ldrb y, [tos] @ Alten Inhalt laden
-  orrs y, w     @ Hinzuverodern
-  strb y, [tos] @ Zurückschreiben
-  movs tos, x
+  ldm psp!, {r0, r1} @ X is the new TOS after the store completes.
+  ldrb r2, [tos] @ Alten Inhalt laden
+  orrs r2, r0    @ Hinzuverodern
+  strb r2, [tos] @ Zurückschreiben
+  movs tos, r1
+  bx lr
+
+  @ For opcoding with one constant
+  ldrb r2, [r0]
+  orrs r2, tos
+  strb r2, [r0]
+  bx lr
+
+  @ For opcoding with two constants
+  ldrb r2, [r0]
+  orrs r2, r1
+  strb r2, [r0]
   bx lr
 
 @ -----------------------------------------------------------------------------
-  Wortbirne Flag_inline, "cbic!" @ ( x 8-addr -- )  Clear bits
+  Wortbirne Flag_inline|Flag_opcodierbar_Speicherschreiben, "cbic!" @ ( x 8-addr -- )  Clear bits
   @ Setzt die Bits in der Speicherstelle
 @ -----------------------------------------------------------------------------
-  ldm psp!, {w, x} @ X is the new TOS after the store completes.
-  ldrb y, [tos] @ Alten Inhalt laden
-  bics y, w     @ Hinzuverodern
-  strb y, [tos] @ Zurückschreiben
-  movs tos, x
+  ldm psp!, {r0, r1} @ X is the new TOS after the store completes.
+  ldrb r2, [tos] @ Alten Inhalt laden
+  bics r2, r0    @ Hinzuverodern
+  strb r2, [tos] @ Zurückschreiben
+  movs tos, r1
+  bx lr
+
+  @ For opcoding with one constant
+  ldrb r2, [r0]
+  bics r2, tos
+  strb r2, [r0]
+  bx lr
+
+  @ For opcoding with two constants
+  ldrb r2, [r0]
+  bics r2, r1
+  strb r2, [r0]
   bx lr
 
 @ -----------------------------------------------------------------------------
-  Wortbirne Flag_inline, "cxor!" @ ( x 8-addr -- )  Toggle bits
+  Wortbirne Flag_inline|Flag_opcodierbar_Speicherschreiben, "cxor!" @ ( x 8-addr -- )  Toggle bits
   @ Setzt die Bits in der Speicherstelle
 @ -----------------------------------------------------------------------------
-  ldm psp!, {w, x} @ X is the new TOS after the store completes.
-  ldrb y, [tos] @ Alten Inhalt laden
-  eors y, w     @ Hinzuverodern
-  strb y, [tos] @ Zurückschreiben
-  movs tos, x
+  ldm psp!, {r0, r1} @ X is the new TOS after the store completes.
+  ldrb r2, [tos] @ Alten Inhalt laden
+  eors r2, r0     @ Hinzuverodern
+  strb r2, [tos] @ Zurückschreiben
+  movs tos, r1
+  bx lr
+
+  @ For opcoding with one constant
+  ldrb r2, [r0]
+  eors r2, tos
+  strb r2, [r0]
+  bx lr
+
+  @ For opcoding with two constants
+  ldrb r2, [r0]
+  eors r2, r1
+  strb r2, [r0]
   bx lr
 
 @ -----------------------------------------------------------------------------
-  Wortbirne Flag_inline, "cbit@" @ ( x 8-addr -- )  Check bits
+  Wortbirne Flag_inline, "cbit@" @ ( x 8-addr -- Flag )  Check bits
   @ Prüft, ob Bits in der Speicherstelle gesetzt sind
 @ -----------------------------------------------------------------------------
-  ldm psp!, {w}  @ Bitmaske holen
+  ldm psp!, {r0}  @ Bitmaske holen
   ldrb tos, [tos] @ Speicherinhalt holen
-  ands tos, w    @ Bleibt nach AND etwas über ?
+  ands tos, r0    @ Bleibt nach AND etwas über ?
 
   .ifdef m0core
   beq 1f

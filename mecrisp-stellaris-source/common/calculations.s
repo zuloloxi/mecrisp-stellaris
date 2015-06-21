@@ -23,8 +23,8 @@
   Wortbirne Flag_inline|Flag_opcodierbar_Plusminus, "+" @ ( x1 x2 -- x1+x2 )
                       @ Adds x1 and x2.
 @ -----------------------------------------------------------------------------
-  ldm psp!, {w}
-  adds tos, w 
+  ldm psp!, {r0}
+  adds tos, r0
   bx lr
   adds tos, r0 @ Opcode for use with literal in register
   adds tos, #0 @ Opcode for use with byte literal
@@ -38,8 +38,8 @@
   Wortbirne Flag_inline|Flag_opcodierbar_Plusminus, "-" @ ( x1 x2 -- x1-x2 )
                       @ Subtracts x2 from x1.
 @ -----------------------------------------------------------------------------
-  ldm psp!, {w}
-  subs tos, w, tos
+  ldm psp!, {r0}
+  subs tos, r0, tos
   bx lr
   subs tos, r0 @ Opcode for use with literal in register
   subs tos, #0 @ Opcode for use with byte literal
@@ -140,13 +140,13 @@ u_divmod:                            @ ARM provides no remainder operation, so w
 
   .else
 
-  ldm psp!, {w}        @ Get u1 into a register
-  movs x, tos         @ Back up the divisor in X.
-  udiv tos, w, tos   @ Divide: quotient in TOS.
-  muls x, tos, x      @ Un-divide to compute remainder.
-  subs w, x            @ Compute remainder.
+  ldm psp!, {r0}       @ Get u1 into a register
+  movs r1, tos        @ Back up the divisor in X.
+  udiv tos, r0, tos  @ Divide: quotient in TOS.
+  muls r1, tos, r1    @ Un-divide to compute remainder.
+  subs r0, r1          @ Compute remainder.
   subs psp, #4
-  str w, [psp]
+  str r0, [psp]
   bx lr
 
   .endif
@@ -206,13 +206,13 @@ divmod_plus_plus:
 
   .else
 
-  ldm psp!, {w}       @ Get u1 into a register
-  movs x, tos        @ Back up the divisor in X.
-  sdiv tos, w, tos  @ Divide: quotient in TOS.
-  muls x, tos, x     @ Un-divide to compute remainder.
-  subs w, x           @ Compute remainder.
+  ldm psp!, {r0}       @ Get u1 into a register
+  movs r1, tos       @ Back up the divisor in X.
+  sdiv tos, r0, tos @ Divide: quotient in TOS.
+  muls r1, tos, r1   @ Un-divide to compute remainder.
+  subs r0, r1         @ Compute remainder.
   subs psp, #4
-  str w, [psp]
+  str r0, [psp]
   bx lr
 
   .endif
@@ -238,16 +238,16 @@ divmod_plus_plus:
 @ -----------------------------------------------------------------------------
   Wortbirne Flag_foldable_2|Flag_inline, "/" @ ( n1 n2 -- n1/n2 )
 @ -----------------------------------------------------------------------------
-  ldm psp!, {w}       @ Get n1 into a register
-  sdiv tos, w, tos    @ Divide !
+  ldm psp!, {r0}       @ Get n1 into a register
+  sdiv tos, r0, tos    @ Divide !
   bx lr
   .endif
 
 @ -----------------------------------------------------------------------------
   Wortbirne Flag_inline|Flag_opcodierbar_Rechenlogik, "*" @ ( u1|n1 u2|n2 -- u3|n3 )
 @ -----------------------------------------------------------------------------
-  ldm psp!, {w}     @ Get u1|n1 into a register.
-  muls tos, w       @ Multiply!
+  ldm psp!, {r0}    @ Get u1|n1 into a register.
+  muls tos, r0      @ Multiply!
   bx lr
   muls tos, r0      @ Opcode for use with literal in register
 

@@ -58,17 +58,11 @@
 @ Register definitions
 @ -----------------------------------------------------------------------------
 
-@ Helferlein-Register
-@ Temporary registers that are not saved
-w .req r0
-x .req r1
-y .req r2
-z .req r3
-
 @ Datenstack mit TOS im Register.
 @ Achtung: Diese Register sind recht fest eingebaut, nicht versuchen, diese auszustauschen.
 @ Datastack with TOS in register.
 @ Never change this registers as they are hardwired in some places.
+
 tos .req r6
 psp .req r7
 
@@ -190,9 +184,9 @@ irq_vektor_\Name:
 .endm
 
 .macro swap
-  ldr x, [psp]   @ Load X from the stack, no SP change.
+  ldr r1,  [psp] @ Load r0 from the stack, no SP change.
   str tos, [psp] @ Replace it with TOS.
-  mov tos, x     @ And vice versa.
+  mov tos, r1    @ And vice versa.
 .endm
 
 .macro to_r

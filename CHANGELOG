@@ -175,3 +175,12 @@
 
   - Tab is now recognized as whitespace
   - Added irq-fault
+
+27.05.2014, Matthias Koch, Mecrisp-Stellaris 1.1.6
+
+  - Analog and PLL examples for TM4C1294
+  - Enabled Prefetch Buffer in PLL examples for STM32F407
+  - Added Forth source for multiline comments
+  - Added Bitlog and Bitexp functions
+  - Improved code generation for fetch-modify-store shortcuts
+  - Testing of LM4F120 binary on TI Tiva Launchpad with TM4C123GH6PM

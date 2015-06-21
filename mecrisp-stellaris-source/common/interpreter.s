@@ -408,14 +408,13 @@ interpret:
     pushdaconst 0
     bl registerliteralkomma
 
-    pushdatos
-    ldrh tos, [r0] @ Fetch Opcode
-    bl hkomma
-   
+    pushda r0
+    bl inlinekomma
+
     @ Compile Drop-Opcode
     pushdaconstw 0xcf40 @ Opcode for ldmia r7!, {r6}
     bl hkomma
-    b.n 1b
+    b.n 1b @ Finished.
 
 2:  @ Two or more constants.
     pushdaconst 0
@@ -424,9 +423,10 @@ interpret:
     pushdaconst 1
     bl registerliteralkomma
 
-    pushdatos
-    ldrh tos, [r0, #2] @ Fetch next Opcode
-    bl hkomma
+    bl suchedefinitionsende
+
+    pushda r0
+    bl inlinekomma
     b.n 1b @ Finished.
 
 .interpret_opcodierbar_andere:

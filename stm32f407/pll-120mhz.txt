@@ -21,7 +21,7 @@ RCC_Base $08 + constant RCC_CFGR
 : 120MHz ( -- )
 
   \ Set Flash waitstates !
-  3 Flash_ACR !   \ 3 Waitstates for 120 MHz with more than 2.7 V Vcc
+  $103 Flash_ACR !   \ 3 Waitstates for 120 MHz with more than 2.7 V Vcc, Prefetch buffer enabled.
 
   PLLSRC          \ HSE clock as 8 MHz source
 

@@ -38,8 +38,8 @@
   Wortbirne Flag_inline|Flag_opcodierbar_Rechenlogik_M3, "and" @ ( x1 x2 -- x1&x2 )
                         @ Combines the top two stack elements using bitwise AND.
 @ -----------------------------------------------------------------------------
-  ldm psp!, {w}
-  ands tos, w
+  ldm psp!, {r0}
+  ands tos, r0
   bx lr
   ands tos, r0 @ Opcode for use with literal in register
 
@@ -51,9 +51,9 @@
 @ -----------------------------------------------------------------------------
   Wortbirne Flag_inline|Flag_opcodierbar_Rechenlogik_M3, "bic" @ ( x1 x2 -- x1&~x2 )
 @ -----------------------------------------------------------------------------
-  ldm psp!, {w}
-  bics w, tos
-  movs tos, w
+  ldm psp!, {r0}
+  bics r0, tos
+  movs tos, r0
   bx lr
   bics tos, r0 @ Opcode for use with literal in register
 
@@ -66,8 +66,8 @@
   Wortbirne Flag_inline|Flag_opcodierbar_Rechenlogik_M3, "or" @ ( x1 x2 -- x1|x2 )
                        @ Combines the top two stack elements using bitwise OR.
 @ -----------------------------------------------------------------------------
-  ldm psp!, {w}
-  orrs tos, w
+  ldm psp!, {r0}
+  orrs tos, r0
   bx lr
   orrs tos, r0 @ Opcode for use with literal in register
 
@@ -80,8 +80,8 @@
   Wortbirne Flag_inline|Flag_opcodierbar_Rechenlogik_M3, "xor" @ ( x1 x2 -- x1|x2 )
                         @ Combines the top two stack elements using bitwise exclusive-OR.
 @ -----------------------------------------------------------------------------
-  ldm psp!, {w}
-  eors tos, w
+  ldm psp!, {r0}
+  eors tos, r0
   bx lr
   eors tos, r0 @ Opcode for use with literal in register
 
@@ -173,9 +173,9 @@
   Wortbirne Flag_inline|Flag_opcodierbar_Schieben, "rshift" @ ( x n -- x' )
                            @ Shifts 'x' right by 'n' bits.
 @ -----------------------------------------------------------------------------
-  ldm psp!, {w}
-  lsrs w, tos
-  movs tos, w
+  ldm psp!, {r0}
+  lsrs r0, tos
+  movs tos, r0
   bx lr
   .hword 0x0836 @ Opcode lsrs r6, r6, #0
   movs tos, #0  @ Opcode if shift is > 31 places.
@@ -184,9 +184,9 @@
   Wortbirne Flag_inline|Flag_opcodierbar_Schieben, "arshift" @ ( x n -- x' )
                             @ Shifts 'x' right by 'n' bits, shifting in x's MSB.
 @ -----------------------------------------------------------------------------
-  ldm psp!, {w}
-  asrs w, tos
-  movs tos, w
+  ldm psp!, {r0}
+  asrs r0, tos
+  movs tos, r0
   bx lr
   .hword 0x1036 @ Opcode asrs r6, r6, #0
   asrs tos, #31 @ Opcode if shift is > 31 places.
@@ -195,9 +195,9 @@
   Wortbirne Flag_inline|Flag_opcodierbar_Schieben, "lshift" @ ( x n -- x' )
                            @ Shifts 'x' left by 'n' bits.
 @ -----------------------------------------------------------------------------
-  ldm psp!, {w}
-  lsls w, tos
-  movs tos, w
+  ldm psp!, {r0}
+  lsls r0, tos
+  movs tos, r0
   bx lr
   .hword 0x0036 @ Opcode lsls r6, r6, #0
   movs tos, #0  @ Opcode if shift is > 31 places.

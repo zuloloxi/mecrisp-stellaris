@@ -25,10 +25,10 @@
 @ -----------------------------------------------------------------------------
   Wortbirne Flag_foldable_2, "2dup" @ ( 2 1 -- 2 1 2 1 )
 @ -----------------------------------------------------------------------------
-  ldr w, [psp]
+  ldr r0, [psp]
   pushdatos
   subs psp, #4
-  str w, [psp]
+  str r0, [psp]
   bx lr
 
 @ -----------------------------------------------------------------------------
@@ -42,65 +42,65 @@
   Wortbirne Flag_foldable_4, "2swap" @ ( 4 3 2 1 -- 2 1 4 3 )
 dswap:
 @ -----------------------------------------------------------------------------
-  ldm psp!, {w, x, y}
+  ldm psp!, {r0, r1, r2}
   subs psp, #4
-  str w, [psp]
+  str r0, [psp]
   pushdatos
   subs psp, #4
-  str y, [psp]
-  movs tos, x
+  str r2, [psp]
+  movs tos, r1
   bx lr
 
 @ -----------------------------------------------------------------------------
   Wortbirne Flag_foldable_2|Flag_inline, "2nip" @ ( 4 3 2 1 -- 2 1 )
 dnip:
 @ -----------------------------------------------------------------------------
-  ldm psp!, {w, x, y}
+  ldm psp!, {r0, r1, r2}
   subs psp, #4
-  str w, [psp]
+  str r0, [psp]
   bx lr
 
 @ -----------------------------------------------------------------------------
   Wortbirne Flag_foldable_4, "2over" @ ( 4 3 2 1 -- 4 3 2 1 4 3 )
 @ -----------------------------------------------------------------------------
-  ldr w, [psp, #8]
+  ldr r0, [psp, #8]
   pushdatos
   subs psp, #4
-  str w, [psp]
+  str r0, [psp]
   ldr tos, [psp, #12]  
   bx lr
 
 @ -----------------------------------------------------------------------------
   Wortbirne Flag_foldable_4, "2tuck" @ ( 4 3 2 1 -- 2 1 4 3 2 1 )
 @ -----------------------------------------------------------------------------
-  ldm psp!, {w, x, y} @ w=2 x=3 y=4
+  ldm psp!, {r0, r1, r2} @ w=2 x=3 y=4
   subs psp, #4
-  str w, [psp]
+  str r0, [psp]
   pushdatos
   subs psp, #4
-  str y, [psp]
+  str r2, [psp]
   subs psp, #4
-  str x, [psp]
+  str r1, [psp]
   subs psp, #4
-  str w, [psp]
+  str r0, [psp]
   bx lr
 
 @ -----------------------------------------------------------------------------
   Wortbirne Flag_foldable_6, "2rot" @ ( 6  5 4 3 2 1  -- 4  3 2 1 6 5 ) ( x w y -- w y x )
                                     @  16 12 8 4 0 tos  16 12 8 4 0 tos
 @ -----------------------------------------------------------------------------
-  ldr w, [psp]
-  ldr x, [psp, #8]
-  ldr y, [psp, #16]
+  ldr r0, [psp]
+  ldr r1, [psp, #8]
+  ldr r2, [psp, #16]
 
-  str w, [psp, #8]
-  str x, [psp, #16]
-  str y, [psp]
+  str r0, [psp, #8]
+  str r1, [psp, #16]
+  str r2, [psp]
 
-  ldr x, [psp, #4]
+  ldr r1, [psp, #4]
   str tos, [psp, #4]
   ldr tos, [psp, #12]
-  str x, [psp, #12]
+  str r1, [psp, #12]
 
   bx lr
 
@@ -108,18 +108,18 @@ dnip:
   Wortbirne Flag_foldable_6, "2-rot" @ ( 6  5 4 3 2 1 --  2  1 6 5 4 3 ( x w y -- y x w )
                                      @  16 12 8 4 0 tos  16 12 8 4 0 tos
 @ -----------------------------------------------------------------------------
-  ldr w, [psp]
-  ldr x, [psp, #8]
-  ldr y, [psp, #16]
+  ldr r0, [psp]
+  ldr r1, [psp, #8]
+  ldr r2, [psp, #16]
 
-  str w, [psp, #16]
-  str x, [psp]
-  str y, [psp, #8]
+  str r0, [psp, #16]
+  str r1, [psp]
+  str r2, [psp, #8]
 
-  ldr x, [psp, #12]
+  ldr r1, [psp, #12]
   str tos, [psp, #12]
   ldr tos, [psp, #4]
-  str x, [psp, #4]
+  str r1, [psp, #4]
 
   bx lr
 
@@ -136,8 +136,8 @@ dnip:
   Wortbirne Flag_inline, "2>r" @ Puts the two top elements of stack on returnstack.
                                @ Equal to swap >r >r 
 @------------------------------------------------------------------------------
-  ldm psp!, {w}
-  push {w}
+  ldm psp!, {r0}
+  push {r0}
   push {tos}
   ldm psp!, {tos}
   bx lr
@@ -148,9 +148,9 @@ dnip:
 @------------------------------------------------------------------------------
   pushdatos
   pop {tos}
-  pop {w}
+  pop {r0}
   subs psp, #4
-  str w, [psp]
+  str r0, [psp]
   bx lr
 
 @------------------------------------------------------------------------------
@@ -176,41 +176,41 @@ dnip:
 @------------------------------------------------------------------------------
   Wortbirne Flag_visible|Flag_foldable_2, "d2/"
 @------------------------------------------------------------------------------
-  ldr w, [psp]
-  lsls x, tos, #31 @ Prepare Carry
+  ldr r0, [psp]
+  lsls r1, tos, #31 @ Prepare Carry
   asrs tos, #1     @ Shift signed high part right
-  lsrs w, #1       @ Shift low part
-  orrs w, x
-  str w, [psp]
+  lsrs r0, #1       @ Shift low part
+  orrs r0, r1
+  str r0, [psp]
   bx lr
 
 @------------------------------------------------------------------------------
   Wortbirne Flag_inline|Flag_foldable_2, "d2*"
 @------------------------------------------------------------------------------
-  ldr w, [psp]
-  adds w, w
+  ldr r0, [psp]
+  adds r0, r0
   adcs tos, tos
-  str w, [psp]
+  str r0, [psp]
   bx lr
 
 @------------------------------------------------------------------------------
   Wortbirne Flag_visible|Flag_foldable_2, "dshr"
 @------------------------------------------------------------------------------
-  ldr w, [psp]
-  lsls x, tos, #31 @ Prepare Carry
+  ldr r0, [psp]
+  lsls r1, tos, #31 @ Prepare Carry
   lsrs tos, #1     @ Shift unsigned high part right
-  lsrs w, #1       @ Shift low part
-  orrs w, x
-  str w, [psp]
+  lsrs r0, #1       @ Shift low part
+  orrs r0, r1
+  str r0, [psp]
   bx lr
 
 @------------------------------------------------------------------------------
   Wortbirne Flag_inline|Flag_foldable_2, "dshl"
 @------------------------------------------------------------------------------
-  ldr w, [psp]
-  adds w, w
+  ldr r0, [psp]
+  adds r0, r0
   adcs tos, tos
-  str w, [psp]
+  str r0, [psp]
   bx lr
 
 @------------------------------------------------------------------------------
@@ -225,8 +225,8 @@ dabs:
   Wortbirne Flag_foldable_3, "?dnegate" @ Negate a double number if top element on stack is negative.
 @------------------------------------------------------------------------------
 qdnegate:
-  popda w
-  cmp w, #0
+  popda r0
+  cmp r0, #0
   bmi.n dnegate
   bx lr
 
@@ -234,35 +234,35 @@ qdnegate:
   Wortbirne Flag_foldable_2, "dnegate"
 @------------------------------------------------------------------------------
 dnegate:
-  ldr w, [psp]
-  movs x, #0
-  mvns w, w
+  ldr r0, [psp]
+  movs r1, #0
+  mvns r0, r0
   mvns tos, tos
-  adds w, #1
-  adcs tos, x
-  str w, [psp]
+  adds r0, #1
+  adcs tos, r1
+  str r0, [psp]
   bx lr
 
 @------------------------------------------------------------------------------
   Wortbirne Flag_inline|Flag_foldable_4, "d-" @ ( 1L 1H 2L 2H )
 @------------------------------------------------------------------------------
-  ldm psp!, {w, x, y}
-  subs y, w     @  Low-part first
-  sbcs x, tos   @ High-part with carry
-  movs tos, x
+  ldm psp!, {r0, r1, r2}
+  subs r2, r0     @  Low-part first
+  sbcs r1, tos   @ High-part with carry
+  movs tos, r1
 
   subs psp, #4
-  str y, [psp]
+  str r2, [psp]
   bx lr
 
 @------------------------------------------------------------------------------
   Wortbirne Flag_inline|Flag_foldable_4, "d+" @ ( 1L 1H 2L 2H )
 @------------------------------------------------------------------------------
-  ldm psp!, {w, x, y}
-  adds y, w
-  adcs tos, x
+  ldm psp!, {r0, r1, r2}
+  adds r2, r0
+  adcs tos, r1
   subs psp, #4
-  str y, [psp]
+  str r2, [psp]
   bx lr
   
 @------------------------------------------------------------------------------
@@ -320,9 +320,9 @@ um_star:
 um_star:
 @------------------------------------------------------------------------------
 
-    ldr w, [psp]
-    umull w, tos, w, tos @ Unsigned long multiply 32*32=64
-    str w, [psp]
+    ldr r0, [psp]
+    umull r0, tos, r0, tos @ Unsigned long multiply 32*32=64
+    str r0, [psp]
     bx lr
 
   .endif
@@ -372,9 +372,9 @@ m_star:
 m_star:
 @------------------------------------------------------------------------------
 
-    ldr w, [psp]
-    smull w, tos, w, tos @ Signed long multiply 32*32=64
-    str w, [psp]
+    ldr r0, [psp]
+    smull r0, tos, r0, tos @ Signed long multiply 32*32=64
+    str r0, [psp]
     bx lr
 
   .endif
@@ -1030,16 +1030,16 @@ uf_slash_mod: @ Divide 64/64 = 64 Remainder 64. Puts decimal point in the middle
   @ ( 2L 2H 1L 1H -- Flag )
   @   8y 4x 0w tos
 @------------------------------------------------------------------------------
-  ldm psp!, {w, x, y}
+  ldm psp!, {r0, r1, r2}
 
   @ Check High:
-  cmp tos, x
+  cmp tos, r1
   bhi 2f @ True
   bne 1f @ False - Not bigger, not equal --> Lower.
   @ Fall through if high part is equal
 
   @ Check Low:
-  cmp w, y
+  cmp r0, r2
   bhi 2f
 
 @ False:
@@ -1056,16 +1056,16 @@ uf_slash_mod: @ Divide 64/64 = 64 Remainder 64. Puts decimal point in the middle
   @ ( 2L 2H 1L 1H -- Flag )
   @   8y 4x 0w tos
 @------------------------------------------------------------------------------
-  ldm psp!, {w, x, y}
+  ldm psp!, {r0, r1, r2}
 
   @ Check High:
-  cmp x, tos
+  cmp r1, tos
   bhi 2f @ True
   bne 1f @ False - Not bigger, not equal --> Lower.
   @ Fall through if high part is equal
 
   @ Check Low:
-  cmp y, w
+  cmp r2, r0
   bhi 2f
 
 @ False:
@@ -1082,16 +1082,16 @@ uf_slash_mod: @ Divide 64/64 = 64 Remainder 64. Puts decimal point in the middle
   @ ( 2L 2H 1L 1H -- Flag )
   @   8y 4x 0w tos
 @------------------------------------------------------------------------------
-  ldm psp!, {w, x, y}
+  ldm psp!, {r0, r1, r2}
 
   @ Check High:
-  cmp tos, x
+  cmp tos, r1
   bgt 2f @ True
   bne 1f @ False - Not bigger, not equal --> Lower.
   @ Fall through if high part is equal
 
   @ Check Low:
-  cmp w, y
+  cmp r0, r2
   bgt 2f
 
 @ False:
@@ -1108,16 +1108,16 @@ uf_slash_mod: @ Divide 64/64 = 64 Remainder 64. Puts decimal point in the middle
   @ ( 2L 2H 1L 1H -- Flag )
   @   8y 4x 0w tos
 @------------------------------------------------------------------------------
-  ldm psp!, {w, x, y}
+  ldm psp!, {r0, r1, r2}
 
   @ Check High:
-  cmp x, tos
+  cmp r1, tos
   bgt 2f @ True
   bne 1f @ False - Not bigger, not equal --> Lower.
   @ Fall through if high part is equal
 
   @ Check Low:
-  cmp y, w
+  cmp r2, r0
   bgt 2f
 
 @ False:
@@ -1140,8 +1140,8 @@ uf_slash_mod: @ Divide 64/64 = 64 Remainder 64. Puts decimal point in the middle
 @------------------------------------------------------------------------------
   Wortbirne Flag_foldable_2, "d0=" @ ( 1L 1H -- Flag )
 @------------------------------------------------------------------------------
-  ldm psp!, {w}
-  cmp w, #0
+  ldm psp!, {r0}
+  cmp r0, #0
   beq 1f
     movs tos, #0
     bx lr
@@ -1153,12 +1153,12 @@ uf_slash_mod: @ Divide 64/64 = 64 Remainder 64. Puts decimal point in the middle
 @------------------------------------------------------------------------------
   Wortbirne Flag_foldable_4, "d<>" @ ( 1L 1H 2L 2H -- Flag )
 @------------------------------------------------------------------------------
-  ldm psp!, {w, x, y}
+  ldm psp!, {r0, r1, r2}
 
-  cmp w, y
+  cmp r0, r2
   bne 1f
 
-  subs tos, x        @ Z=equality; if equal, TOS=0
+  subs tos, r1        @ Z=equality; if equal, TOS=0
   beq 2f
 
 1:movs tos, #0
@@ -1168,14 +1168,14 @@ uf_slash_mod: @ Divide 64/64 = 64 Remainder 64. Puts decimal point in the middle
 @------------------------------------------------------------------------------
   Wortbirne Flag_foldable_4, "d=" @ ( 1L 1H 2L 2H -- Flag )
 @------------------------------------------------------------------------------
-  ldm psp!, {w, x, y}
+  ldm psp!, {r0, r1, r2}
 
-  cmp w, y
+  cmp r0, r2
   beq 1f
     movs tos, #0
     bx lr
 
-1:subs tos, x       @ Z=equality; if equal, TOS=0
+1:subs tos, r1       @ Z=equality; if equal, TOS=0
   subs tos, #1      @ Wenn es Null war, gibt es jetzt einen Überlauf
   sbcs tos, tos
   bx lr

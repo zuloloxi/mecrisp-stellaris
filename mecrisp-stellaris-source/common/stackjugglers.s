@@ -85,9 +85,9 @@
 @ -----------------------------------------------------------------------------
   Wortbirne Flag_foldable_2|Flag_inline, "swap" @ ( x y -- y x )
 @ -----------------------------------------------------------------------------
-  ldr x, [psp]   @ Load X from the stack, no SP change.
-  str tos, [psp] @ Replace it with TOS.
-  movs tos, x     @ And vice versa.
+  ldr r1,  [psp]  @ Load X from the stack, no SP change.
+  str tos, [psp]  @ Replace it with TOS.
+  movs tos, r1    @ And vice versa.
   bx lr
 
 @ -----------------------------------------------------------------------------
@@ -107,32 +107,32 @@
   Wortbirne Flag_foldable_2|Flag_inline, "tuck" @ ( x1 x2 -- x2 x1 x2 )
 @ -----------------------------------------------------------------------------
 tuck:
-  ldm psp!, {w}
+  ldm psp!, {r0}
   subs psp, #8
   str tos, [psp, #4]
-  str w, [psp]
+  str r0, [psp]
   bx lr
 
 @ -----------------------------------------------------------------------------
   Wortbirne Flag_foldable_3|Flag_inline, "rot" @ ( x w y -- w y x )
 @ -----------------------------------------------------------------------------
 rot:
-  ldm psp!, {w, x}
+  ldm psp!, {r0, r1}
   subs psp, #8
-  str w, [psp, #4]
+  str r0, [psp, #4]
   str tos, [psp]
-  movs tos, x
+  movs tos, r1
   bx lr
 
 @ -----------------------------------------------------------------------------
   Wortbirne Flag_foldable_3|Flag_inline, "-rot" @ ( x w y -- y x w )
 @ -----------------------------------------------------------------------------
 minusrot:
-  ldm psp!, {w, x}
+  ldm psp!, {r0, r1}
   subs psp, #8
   str tos, [psp, #4]
-  str x, [psp]
-  movs tos, w
+  str r1, [psp]
+  movs tos, r0
   bx lr
 
 @ -----------------------------------------------------------------------------

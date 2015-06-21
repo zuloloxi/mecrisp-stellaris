@@ -21,7 +21,7 @@ This is the second stable release of Mecrisp-Stellaris,
 a port of Mecrisp to the ARM Cortex M architecture.
 
 It runs out of the box on:
-  - TI Stellaris Launchpad       with LM4F120H5QR
+  - TI Stellaris/Tiva Launchpad  with LM4F120H5QR / TM4C123GH6PM
   - TI Tiva Connected Launchpad  with TM4C1294NCPDT
   - STM Nucleo 401RE             with STM32F401RE
   - STM F0 Discovery             with STM32F051R8
@@ -51,6 +51,7 @@ Communication is via serial 115200 baud 8N1 over
   - UART0  in TM4C1294  (connected to USB-serial bridge on Tiva Connected Launchpad)
   - USART1 in STM32F051 (TX on PA9, RX on PA10)
   - USART1 in STM32F100 (TX on PA9, RX on PA10)
+  - USART1 in STM32F103 (TX on PA9, RX on PA10)
   - USART2 in STM32F401 (TX on PA2, RX on PA3 connected to USB-serial bridge on Nucleo board)
   - USART2 in STM32F407 (TX on PA2, RX on PA3)
   - USART1 in STM32F429 (TX on PA9, RX on PA10)
@@ -58,7 +59,7 @@ Communication is via serial 115200 baud 8N1 over
   - UART5  in LM4F232
 
 
-Hardware and configuration for LM4F120:
+Hardware and configuration for LM4F120 and TM4C123:
   Connect your cable to the Debug-USB-Port, 
   set "PWR SELECT" switch to DEBUG and
   close VDD jumper.
