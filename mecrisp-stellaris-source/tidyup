@@ -4,6 +4,10 @@ cd kl25z128
 make clean
 cd ..
 
+cd mk20dx256
+make clean
+cd ..
+
 cd lm4f120
 make clean
 cd ..

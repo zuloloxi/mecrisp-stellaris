@@ -184,3 +184,9 @@
   - Added Bitlog and Bitexp functions
   - Improved code generation for fetch-modify-store shortcuts
   - Testing of LM4F120 binary on TI Tiva Launchpad with TM4C123GH6PM
+
+03.06.2014, Matthias Koch, Mecrisp-Stellaris 1.1.7
+
+  - Added string handling helpers: expect tib >in
+  - Contribution by Mark Schweizer:
+      MK20DX256VLH7 port for Teensy 3.1 board

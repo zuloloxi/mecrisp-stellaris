@@ -19,22 +19,19 @@
 @ Input routine Query - with Unicode support.
 
 @ -----------------------------------------------------------------------------
-  Wortbirne Flag_visible, "query" @ Collecting your keystrokes ! Forth at your fingertips :-)
-query: @ ( -- ) Nimmt einen String in den Eingabepuffer auf
+  Wortbirne Flag_visible, "expect" @ ( c-addr maxlength ) Collecting your keystrokes !
+expect: @ Nimmt einen String entgegen und legt ihn in einen Puffer.
 @ -----------------------------------------------------------------------------
-        push    {r0, r1, r2, r3, lr}
+        push    {lr}
 
         @ Registers:
         @ r0: Tastendruck      The pressed key
         @ r1: Pufferzeiger     Buffer pointer
         @ r2: Pufferfüllstand  Buffer fill gauge
         @ r3: Helferlein       Temporary
+        @ tos:Längengrenze     Maximum length
 
-        ldr r0, =Pufferstand @ Aktueller Offset in den Eingabepuffer  Zero characters consumed yet
-        movs r1, #0
-        strb r1, [r0]
-
-        ldr  r1, =Eingabepuffer @ Pufferadresse holen                 Fetch buffer address
+        ldm psp!, {r1}          @ Pufferadresse holen                 Fetch buffer address
         movs r2, #0             @ Momentaner Pufferfüllstand Null     Currently zero characters typed
 
 1:      @ Queryschleife  Collcting loop
@@ -118,7 +115,7 @@ query: @ ( -- ) Nimmt einen String in den Eingabepuffer auf
 
 2:      @ Normale Zeichen annehmen
         @ Add a character to buffer if there is space left and echo it back.
-        cmp     r2, #maximaleeingabe @ Ist der Puffer voll ?  Check buffer fill level.
+        cmp     r2, tos              @ Ist der Puffer voll ?  Check buffer fill level.
         bhs     1b                   @ Keine weiteren Zeichen mehr annehmen.  No more characters if buffer is full !
 
         pushda r0
@@ -132,4 +129,37 @@ query: @ ( -- ) Nimmt einen String in den Eingabepuffer auf
 3:      @ Return has been pressed: Store string length, print space and leave.
         strb    r2, [r1]          @ Pufferfüllstand schreiben
         bl space                  @ Statt des Zeilenumbruches ein Leerzeichen ausgeben
-        pop {r0, r1, r2, r3, pc}  @ Print a space instead of line ending
+        drop                      @ Forget maximum input length
+        pop {pc}
+
+@ -----------------------------------------------------------------------------
+  Wortbirne Flag_foldable_0, "tib" @ ( -- addr )
+@ -----------------------------------------------------------------------------
+tib:
+  pushdatos
+  ldr tos, =Eingabepuffer
+  bx lr
+
+@ -----------------------------------------------------------------------------
+  Wortbirne Flag_foldable_0, ">in" @ ( -- addr )
+@ -----------------------------------------------------------------------------
+  pushdatos
+  ldr tos, =Pufferstand
+  bx lr
+
+@ -----------------------------------------------------------------------------
+  Wortbirne Flag_visible, "query" @ Collecting your keystrokes into TIB ! Forth at your fingertips :-)
+query: @ ( -- ) Nimmt einen String in den Eingabepuffer auf
+@ -----------------------------------------------------------------------------
+  push {r0, r1, r2, r3, lr}
+
+  ldr r0, =Pufferstand @ Aktueller Offset in den Eingabepuffer  Zero characters consumed yet
+  movs r1, #0
+  strb r1, [r0]
+
+  bl tib
+  pushdaconst maximaleeingabe
+
+  bl expect
+
+  pop {r0, r1, r2, r3, pc}

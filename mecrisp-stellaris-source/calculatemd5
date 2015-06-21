@@ -6,6 +6,10 @@ cd kl25z128
 md5sum *.bin
 cd ..
 
+cd mk20dx256
+md5sum *.bin
+cd ..
+
 cd lm4f120
 md5sum *.bin
 cd ..

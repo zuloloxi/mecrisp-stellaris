@@ -123,6 +123,14 @@ here: @ Gibt den Dictionarypointer zurück
   ldr tos, [tos] @ Hole den Dictionarypointer
   bx lr
 
+@ -----------------------------------------------------------------------------
+  Wortbirne Flag_visible, "flashvar-here" @ ( -- a-addr ) Gives RAM management pointer
+@ -----------------------------------------------------------------------------
+  pushdatos
+  ldr tos, =VariablenPointer
+  ldr tos, [tos]
+  bx lr
+
 @------------------------------------------------------------------------------
 @ Verschiedene Sprünge, die von den Kontrollstrukturen gebracht werden.
 @ Some jump primitives that are useful for building control structures

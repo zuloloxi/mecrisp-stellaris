@@ -32,6 +32,7 @@ It runs out of the box on:
   - Freescale Freedom FRDM-KL25Z with KL25Z128VLK4
 
 Contributions:
+  - Teensy 3.1                   with MK20DX256VLH7
   - Chinese QF-LM4F232           with LM4F232H5QC
 
 http://mecrisp.sourceforge.net/
@@ -539,6 +540,8 @@ String routines:
         skipstring      ( cstr-addr -- a-addr )
                         Increases the pointer to the aligned end of the string.
 
+        expect          ( cstr-addr maxlength -- ) Read input into a string
+
         type            ( cstr-addr -- )
                         Prints a counted string.
 
@@ -594,6 +597,8 @@ Deep insights:
 ;------------------------------------------------------------------------------
 
         query           ( -- ) Fetches user input to input buffer
+        tib             ( -- cstr-addr ) Input buffer
+        >in             ( -- addr ) Variable with current offset into TIB
         token           ( -- cstr-addr ) Cuts one token out of input buffer
         parse           ( char -- cstr-addr )
                         Cuts anything delimited by char out of input buffer
@@ -627,6 +632,7 @@ Deep insights:
                                  Aborts, if not enough space available
         here            ( -- a-addr|c-addr )
                         Gives current position in Dictionary
+        flashvar-here   ( -- a-addr ) Gives current RAM management pointer
         dictionarystart ( -- a-addr ) Current entry point for dictionary search
 
         compiletoram?   ( -- ? ) Currently compiling into ram ?
@@ -987,6 +993,39 @@ Interrupts:
         irq-cmp
         irq-porta
         irq-portd
+
+  Look into vectors.s and interrupts.s to add more interrupts.
+
+;------------------------------------------------------------------------------
+; Specials for MK20DX256:
+;------------------------------------------------------------------------------
+
+Flash:
+        eraseflash      ( -- ) Erases everything. Clears Ram. Restarts Forth.
+
+        eraseflashfrom  ( a-addr -- ) Starts erasing at this address.
+                                      Clears Ram. Restarts Forth.
+
+        flashpageerase  ( a-addr -- ) Erase one 1k flash page only. Take care:
+                                      No Reset, no dictionary reinitialisation.
+
+        hflash!         ( u|n a-addr -- )   Writes halfword to flash - emulated
+        flash!          ( u|n 4-a-addr -- ) Writes single number to flash, 
+                                              4 aligned !
+
+Interrupts:
+
+        irq-adc0        ( -- a-addr ) Memory locations for IRQ-Hooks
+        irq-adc1
+        irq-dac
+        irq-cmp0
+        irq-cmp1
+        irq-cmp2
+        irq-porta
+        irq-portb
+        irq-portc
+        irq-portd
+        irq-porte
 
   Look into vectors.s and interrupts.s to add more interrupts.
 
