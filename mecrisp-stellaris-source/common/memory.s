@@ -19,72 +19,67 @@
 @ Speicherzugriffe aller Art
 @ Memory access
 
+
 @------------------------------------------------------------------------------
-  Wortbirne Flag_visible, "move"  @ Forward move some bytes. This currently cannot cope with overlapping memory areas.
-move:  @ ( Quelladdr Zieladdr Byteanzahl -- )
-       @ Kopiert einen Datensatz an eine neue Stelle.
-       @ Kann noch nicht vorwärts und rückwärts kopieren, und so können sich die Speicherbereiche nicht überlappen.
-       @ Nur für internen Gebrauch bestimmt, bis alles geklärt ist.
+  Wortbirne Flag_visible, "move"  @ Move some bytes around. This can cope with overlapping memory areas.
+move:  @ ( Quelladdr Zieladdr Byteanzahl -- ) ( Source Destination Count -- )
 @------------------------------------------------------------------------------
-  push {r0, r1, r2, r3, lr}
 
-  popda r2 @ Count
-  popda r1 @ Zieladresse   Destination
-  popda r0 @ Quelladresse  Source
+  push {r0, r1, r2, lr}
 
-  cmp r2, #0      @ Prüfe, ob die Anzahl der zu kopierenden Bytes Null ist.
-  beq.n move_fertig @ Wenn ja, bin ich fertig.
+  popda r1 @ Count
+  popda r2 @ Destination address
+  @ TOS:     Source address
 
+  @ Count > 0 ?
+  cmp r1, #0
+  beq 3f @ Nothing to do if count is zero.
 
-  cmp r1, r0      @ Quelle und Ziel vergleichen
-  beq.n move_fertig @ Sind sie gleich, bin ich fertig.
+  @ Compare source and destination address to find out which direction to copy.
+  cmp r2, tos
+  beq 3f @ If source and destionation are the same, nothing to do.
+  blo 2f
 
-/*
-  blo move_vorwaerts @ Mindestens ein Byte ist noch zu kopieren. 
+  subs tos, #1
+  subs r2, #1
 
-  @------------------------------------------------------------------------------
-  @ Move-Rückwärts  Wenn die Quelladresse kleiner ist als die Zieladresse
-  writeln "Quelle<Ziel"
+1:@ Source > Destination --> Backward move
+  ldrb r0, [tos, r1]
+  strb r0, [r2, r1]
+  subs r1, #1
+  bne 1b
+  b 3f
 
-  add r0, r2
-  add r1, r2
+2:@ Source < Destination --> Forward move
+  ldrb r0, [tos]
+  strb r0, [r2]
+  adds tos, #1
+  adds r2, #1
+  subs r1, #1
+  bne 2b
 
-1:ldrb r3, [r0] @ Von der Quelladresse an die Zieladresse kopieren
-  strb r3, [r1]
-  pushda r3
-  writeln " rück"
-  sub  r0, #1  @ Quelladresse erniedrigen
-  sub  r1, #1  @  Zieladresse erniedrigen
-  subs r2, #1  @ Zahl der noch zu kopierenden Bytes erniedrigen
-  bne 1b       @ Sind noch welche übrig ?
+3:drop
+  pop {r0, r1, r2, pc}
 
-  b move_fertig
+@------------------------------------------------------------------------------
+  Wortbirne Flag_visible, "fill"  @ Fill memory with given byte.
+  @ ( Destination Count Filling -- )
+@------------------------------------------------------------------------------
+  @ 6.1.1540 FILL CORE ( c-addr u char -- ) If u is greater than zero, store char in each of u consecutive characters of memory beginning at c-addr. 
 
-  @------------------------------------------------------------------------------
-  @ Move-Vorwärts  Wenn die Quelladresse größer ist als die Zieladresse
-move_vorwaerts:
-  writeln "Quelle>Ziel"
+  popda r0 @ Filling byte
+  popda r1 @ Count
+  @ TOS      Destination
 
-*/
+  cmp r1, #0
+  beq 2f
 
-2:ldrb r3, [r0] @ Von der Quelladresse an die Zieladresse kopieren
-  strb r3, [r1]
-  adds  r0, #1  @ Quelladresse erhöhen
-  adds  r1, #1  @  Zieladresse erhöhen
-  subs r2, #1  @ Zahl der noch zu kopierenden Bytes erniedrigen
-  bne 2b       @ Sind noch welche übrig ?
+1:subs r1, #1
+  strb r0, [tos, r1]
+  bne 1b
 
-move_fertig:
-  pop {r0, r1, r2, r3, pc}
-
-@ 
-
-/*  Tests...
-
-: create> <builds does> ;  create> Puffer 1 c, 2 c, 3 c, 4 c, 5 c,  puffer dump   puffer 1 +  puffer 2 + 2 move   puffer dump
-: create> <builds does> ;  create> Puffer 1 c, 2 c, 3 c, 4 c, 5 c,  puffer dump   puffer 1 +  puffer     2 move   puffer dump
-
-*/
+2:drop
+  bx lr
 
 @ -----------------------------------------------------------------------------
   Wortbirne Flag_inline, "@" @ ( 32-addr -- x )

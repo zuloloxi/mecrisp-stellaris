@@ -27,11 +27,11 @@
   @ A  41  65   61  97  a
   @ Z  5A  90   7A  122 z
   cmp \Register, #0x41
-  blo 9f
+  blo 5f
   cmp \Register, #0x5B
-  bhs 9f
+  bhs 5f
   adds \Register, #0x20
-9:  
+5:  
 .endm
 
   .else
@@ -41,11 +41,11 @@
   @ A  41  65   61  97  a
   @ Z  5A  90   7A  122 z
   cmp \Register, #0x41
-  blo 9f
+  blo 5f
   cmp \Register, #0x5B
   it lo
   addlo \Register, #0x20
-9:  
+5:  
 .endm
 
   .endif

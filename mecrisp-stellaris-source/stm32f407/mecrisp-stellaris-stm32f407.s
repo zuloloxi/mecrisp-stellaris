@@ -17,16 +17,14 @@
 @
 
 .syntax unified
-.cpu cortex-m0
+.cpu cortex-m4
 .thumb
 
 @ -----------------------------------------------------------------------------
 @ Swiches for capabilities of this chip
 @ -----------------------------------------------------------------------------
 
-.equ m0core, 1
-.equ emulated16bitflashwrites, 1
-@ Not available:  .equ charkommaavailable, 1
+.equ charkommaavailable, 1
 
 @ -----------------------------------------------------------------------------
 @ Start with some essential macro definitions
@@ -41,14 +39,14 @@
 
 @ Konstanten für die Größe des Ram-Speichers
 
-.equ RamAnfang, 0x1FFFF000 @ Start of RAM          Porting: Change this !
-.equ RamEnde,   0x20003000 @ End   of RAM.  16 kb. Porting: Change this !
+.equ RamAnfang, 0x20000000 @ Start of RAM          Porting: Change this !
+.equ RamEnde,   0x20020000 @ End   of RAM. 128 kb. Porting: Change this !
 
 @ Konstanten für die Größe und Aufteilung des Flash-Speichers
 
 .equ Kernschutzadresse,     0x00004000 @ Darunter wird niemals etwas geschrieben ! Mecrisp core never writes flash below this address.
 .equ FlashDictionaryAnfang, 0x00004000 @ 16 kb für den Kern reserviert...           16 kb Flash reserved for core.
-.equ FlashDictionaryEnde,   0x00020000 @ 112 kb Platz für das Flash-Dictionary     112 kb Flash available. Porting: Change this !
+.equ FlashDictionaryEnde,   0x00100000 @ 1008 kb Platz für das Flash-Dictionary   1008 kb Flash available. Porting: Change this !
 .equ Backlinkgrenze,        RamAnfang  @ Ab dem Ram-Start.
 
 
@@ -68,19 +66,11 @@
 @ -----------------------------------------------------------------------------
 Reset: @ Einsprung zu Beginn
 @ -----------------------------------------------------------------------------
-
-  @ Disable the watchdog timer
-  movs r1, #0
-  ldr  r0, =0x40048100 @ SIM_COPC
-  str  r1, [r0]
-
    @ Initialisierungen der Hardware, habe und brauche noch keinen Datenstack dafür
    @ Initialisations for Terminal hardware, without Datastack.
    bl uart_init
 
-Restart:
-   ldr r0, =returnstackanfang
-   mov sp, r0
+Reset_Inneneinsprung:
    @ Return stack pointer already set up. Time to set data stack pointer !
    @ Normaler Stackpointer bereits gesetzt. Setze den Datenstackpointer:
    ldr psp, =datenstackanfang
@@ -94,7 +84,7 @@ Restart:
    @ Catch the pointers for Flash dictionary
    .include "../common/catchflashpointers.s"
 
-   writeln "Mecrisp-Stellaris 1.1 with M0 core for KL25Z128 by Matthias Koch"
+   writeln "Mecrisp-Stellaris 1.1 for STM32F407 by Matthias Koch"
 
    @ Genauso wie in quit. Hier nochmal, damit quit nicht nach dem Init-Einsprung nochmal tätig wird.
    @ Exactly like the initialisations in quit. Here again because quit should not be executed after running "init".
@@ -128,4 +118,5 @@ Restart:
 init_name: .byte 4, 105, 110, 105, 116, 0 @ "init"
 
 .ltorg @ Ein letztes Mal Konstanten schreiben
+
 

@@ -136,3 +136,14 @@
     - Faster opcodes for inline literals,
         calculations, logic and comparisions
     - Included new opcodes into disassembler-m3
+
+01.05.2014, Matthias Koch, Mecrisp-Stellaris 1.1.0
+
+  Big tidyup release !
+  - Improved readability of chip specific code
+  - Factored out a lot of common code
+  - Move now behaves well for both directions
+  - Added fill and compiletoram?
+  - Improved dictionary building macros
+  - Fixed flaw in LM4F120 PLL example
+ 

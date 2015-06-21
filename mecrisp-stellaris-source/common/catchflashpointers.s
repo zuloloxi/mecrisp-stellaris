@@ -25,6 +25,18 @@
 
   @ Suche nun im Flash nach Anfang und Ende.
   @ Short: Search for begin and end in Flash.
+
+   @ Dictionarypointer ins RAM setzen
+   @ Set dictionary pointer into RAM first
+   ldr r0, =Dictionarypointer
+   ldr r1, =RamDictionaryAnfang
+   str r1, [r0]
+
+   @ Fadenende fürs RAM vorbereiten
+   @ Set latest for RAM
+   ldr r0, =Fadenende
+   ldr r1, =CoreDictionaryAnfang
+   str r1, [r0]
   
   @ Registerbelegung:  Register allocation here:
   @ r0 Adresshangelzeiger  Pointer that crawls through dictionary
@@ -205,3 +217,7 @@ SucheFlashPointer_Fadenende_gefunden:
 @  bl hexdot
 @  writeln " gefunden."
 
+  .ifdef emulated16bitflashwrites
+   @ Prepare 16-Bit Flash write emulation value-and-location collection table
+   bl sammeltabelleleeren
+  .endif

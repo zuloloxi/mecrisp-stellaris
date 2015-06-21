@@ -30,8 +30,8 @@ $00000000 constant SYSCTL_RCC2_OSCSRC2_MO   \  MOSC
 
   \ 3) select the crystal value and oscillator source
     SYSCTL_RCC_R @
-      SYSCTL_RCC_XTAL_M
-      SYSCTL_RCC_XTAL_16MHZ
+      SYSCTL_RCC_XTAL_M      bic
+      SYSCTL_RCC_XTAL_16MHZ  or
     SYSCTL_RCC_R !
 
 

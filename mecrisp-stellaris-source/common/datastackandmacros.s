@@ -206,8 +206,8 @@ irq_vektor_\Name:
   .set rampointer, rampointer + \Menge
 .endm
 
-@ Makros zum Aufbau des Dictionaries
-@ Macro for building dictionary.
+@ Makros zum Aufbau des Dictionarykette.
+@ Macros for building dictionary chain.
 .macro Wortbirne Flags, Name
 
       .ifdef m0core
@@ -215,12 +215,78 @@ irq_vektor_\Name:
       .else
         .p2align 1        @ Auf gerade Adressen ausrichten  Align to even locations
       .endif
-        .set Neu, .
-        .word Latest      @ Link einfügen  Insert Link
-        .set Latest, Neu
+
+      .equ Dictionary_\@, .  @ Labels for a more readable assembler listing only
+
+9:      .word 9f          @ Link einfügen  Insert Link
         .hword \Flags     @ Flags setzen, diesmal 2 Bytes ! Wir haben Platz und Ideen :-)  Flag field, 2 bytes, space for ideas left !
 
-	.byte 8f - 7f     @ Länge des Namensfeldes berechnen  Calculate length of name field
-7:	.ascii "\Name"    @ Namen anfügen  Insert name string
-8:	.p2align 1        @ 1 Bit 0 - Wieder gerade machen  Realign
+        .byte 8f - 7f     @ Länge des Namensfeldes berechnen  Calculate length of name field
+7:      .ascii "\Name"    @ Namen anfügen  Insert name string
+8:      .p2align 1        @ 1 Bit 0 - Wieder gerade machen  Realign
+
+      .equ Code_\@, .        @ Labels for a more readable assembler listing only
+.endm
+
+@ This one sets the link into user changeable Flash dictionary.
+.macro Wortbirne_Kernende Flags, Name
+
+      .ifdef m0core
+        .p2align 2        @ Auf 4 gerade Adressen ausrichten  Align to 4-even locations
+      .else
+        .p2align 1        @ Auf gerade Adressen ausrichten  Align to even locations
+      .endif
+
+      .equ Dictionary_\@, .  @ Labels for a more readable assembler listing only
+
+9:      .word FlashDictionaryAnfang  @ Link einfügen  Insert Link
+        .hword \Flags     @ Flags setzen, diesmal 2 Bytes ! Wir haben Platz und Ideen :-)  Flag field, 2 bytes, space for ideas left !
+
+        .byte 8f - 7f     @ Länge des Namensfeldes berechnen  Calculate length of name field
+7:      .ascii "\Name"    @ Namen anfügen  Insert name string
+8:      .p2align 1        @ 1 Bit 0 - Wieder gerade machen  Realign
+
+      .equ Code_\@, .        @ Labels for a more readable assembler listing only
+.endm
+
+
+@ -----------------------------------------------------------------------------
+@ Meldungen, hier definiert, damit das Zeilenende leicht geändert werden kann
+@ Messages are defined here for simple exchange of line endings.
+@ -----------------------------------------------------------------------------
+
+.macro write Meldung
+  bl dotgaensefuesschen 
+        .byte 8f - 7f         @ Compute length of name field.
+7:      .ascii "\Meldung"
+8:      .p2align 1
+.endm
+
+.macro writeln Meldung
+  bl dotgaensefuesschen 
+        .byte 8f - 7f         @ Compute length of name field.
+7:      .ascii "\Meldung\n"
+8:      .p2align 1
+.endm
+
+.macro Fehler_Quit Meldung
+  bl dotgaensefuesschen 
+        .byte 8f - 7f         @ Compute length of name field.
+7:      .ascii "\Meldung\n"
+8:      .p2align 1
+
+  .ifdef m0core
+    bl quit
+  .else
+    b quit
+  .endif
+.endm
+
+.macro Fehler_Quit_n Meldung
+  bl dotgaensefuesschen 
+        .byte 8f - 7f         @ Compute length of name field.
+7:      .ascii "\Meldung\n"
+8:      .p2align 1
+
+  b.n quit
 .endm

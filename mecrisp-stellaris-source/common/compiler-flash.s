@@ -356,6 +356,21 @@ allot_ok: @ Alles paletti, es ist noch Platz da !  Everything is fine, just allo
 @ A small check takes care of the case if you are already in the memory you request.
 
 @ -----------------------------------------------------------------------------
+  Wortbirne Flag_visible, "compiletoram?"
+@ -----------------------------------------------------------------------------
+  pushdaconst 0
+
+  @ Prüfe, ob der Dictionarypointer im Ram oder im Flash ist:
+  ldr r0, =Dictionarypointer
+  ldr r0, [r0]
+
+  ldr r1, =Backlinkgrenze
+  cmp r0, r1
+  blo.n 1f @ Befinde mich im Flash --> False
+    mvns tos, tos @ Im Ram --> True
+  bx lr
+
+@ -----------------------------------------------------------------------------
   Wortbirne Flag_visible, "compiletoram"
 @ -----------------------------------------------------------------------------
   @ Prüfe, ob der Dictionarypointer im Ram oder im Flash ist:

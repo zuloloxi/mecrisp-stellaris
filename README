@@ -17,7 +17,7 @@
 @
 
 ;------------------------------------------------------------------------------
-This is the first stable release of Mecrisp-Stellaris,
+This is the second stable release of Mecrisp-Stellaris,
 a port of Mecrisp to the ARM Cortex M architecture.
 
 It runs out of the box on:
@@ -46,8 +46,8 @@ inlining of short words.
 Communication is via serial 115200 baud 8N1 over
   - UART0  in LM4F120   (connected to USB-serial bridge on Stellaris Launchpad)
   - UART0  in TM4C1294  (connected to USB-serial bridge on Tiva Connected Launchpad)
-  - USART1 in STM32F1   (TX on PA9, RX on PA10)
-  - USART2 in STM32F4   (TX on PA2, RX on PA3)
+  - USART1 in STM32F100 (TX on PA9, RX on PA10)
+  - USART2 in STM32F407 (TX on PA2, RX on PA3)
   - USART1 in STM32F429 (TX on PA9, RX on PA10)
   - UART0  in KL25Z128  (connected to USB-serial bridge on Freedom board)
   - UART5  in LM4F232
@@ -76,7 +76,7 @@ Hardware and configuration for TM4C1294:
   On startup, this runs with internal PIOSC at 16 MHz, 
   which is specified +-3% over whole temperature range.
 
-Hardware and configuration for STM32F4:
+Hardware and configuration for STM32F407:
   Connect USB cable to ST-Link USB port,
   connect your favourite serial link to PA2 (TX) and PA3 (RX),
   keep logic voltage levels in mind !
@@ -88,13 +88,13 @@ Hardware and configuration for STM32F4:
   the low address range to generate short opcodes for calling core words, but
   for flashing the binary, you have to use the "true address" $08000000.
   st-flash erase
-  st-flash write mecrisp-stellaris-stm32f4.bin 0x08000000
+  st-flash write mecrisp-stellaris-stm32f407.bin 0x08000000
 
   On startup, this runs with external 8 MHz crystal HSE clock,
   as internal oscillator is specified -8% + 4.5% over whole temp range.
 
 Hardware and configuration for STM32F429:
-  Similiar to STM32F4.
+  Similiar to STM32F407.
 
   Connect USB cable to ST-Link USB port,
   connect your favourite serial link to PA9 (TX) and PA10 (RX),
@@ -105,15 +105,15 @@ Hardware and configuration for STM32F429:
 
   On startup, this runs with external 8 MHz crystal HSE clock.
 
-Hardware and configuration for STM32F1:
-  Similiar to STM32F4.
+Hardware and configuration for STM32F100:
+  Similiar to STM32F407.
 
   Connect USB cable to ST-Link USB port,
   connect your favourite serial link to PA9 (TX) and PA10 (RX),
   keep logic voltage levels in mind !
 
   st-flash erase
-  st-flash write mecrisp-stellaris-stm32f1.bin 0x08000000
+  st-flash write mecrisp-stellaris-stm32f100.bin 0x08000000
 
   On startup, this runs with internal 8 MHz HSI clock.
 
@@ -155,6 +155,14 @@ Differences to Mecrisp for MSP430 are:
 
 * Chip specific sources have added English comments and hints included
     for simplify porting to other ARM Cortex-M chips.
+
+;------------------------------------------------------------------------------
+; Turnkey applications
+;------------------------------------------------------------------------------
+
+If you define a word with name "init" - its latest definition is called every
+startup ! You you can redefine init if you like to add e.g. additional hardware
+setup; don't forget to give your old definition of init a call if you have one.
 
 ;------------------------------------------------------------------------------
 ; Porting
@@ -284,6 +292,8 @@ Double-Jugglers:        They perform the same for double numbers.
         lshift          ( x1 u -- x2 ) Logical  left-shift of u bit-places
         shr             ( x1 -- x2 )   Logical right-shift of one bit-place
         shl             ( x1 -- x2 )   Logical  left-shift of one bit-place
+        ror             ( x1 -- x2 )   Logical right-rotation of one bit-place
+        rol             ( x1 -- x2 )   Logical  left-rotation of one bit-place
         bic             ( x1 x2 -- x3 ) Bit clear, identical to "not and"
         not             ( x1 -- x2 )   Invert all bits
         xor             ( x1 x2 -- x3 ) Bitwise Exclusive-OR
@@ -421,8 +431,7 @@ like signed double numbers.
 ;------------------------------------------------------------------------------
 
         move            ( c-addr1 c-addr2 u -- ) Moves u Bytes in Memory
-                        Caution with overlapping areas, as for now it moves
-                        in forward direction only.
+        fill            ( c-addr u c ) Fill u Bytes of Memory with value c
 
         cbit@           ( mask c-addr -- flag ) Test BIts in byte-location
         hbit@           ( mask a-addr -- flag ) Test BIts in halfword-location
@@ -563,6 +572,7 @@ Deep insights:
                         Gives current position in Dictionary
         dictionarystart ( -- a-addr ) Current entry point for dictionary search
 
+        compiletoram?   ( -- ? ) Currently compiling into ram ?
         compiletoram    ( -- ) Makes ram   the target for compiling
         compiletoflash  ( -- ) Makes flash the target for compiling
 
@@ -816,7 +826,7 @@ Interrupts:
   Look into vectors.s and interrupts.s to add more interrupts.
 
 ;------------------------------------------------------------------------------
-; Specials for STM32F1:
+; Specials for STM32F100:
 ;------------------------------------------------------------------------------
 
 Flash:
@@ -842,7 +852,7 @@ Interrupts:
   Look into vectors.s and interrupts.s to add more interrupts.
   
 ;------------------------------------------------------------------------------
-; Specials for STM32F4 and STM32F429:
+; Specials for STM32F407 and STM32F429:
 ;------------------------------------------------------------------------------
 
 Flash:

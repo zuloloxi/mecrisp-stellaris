@@ -1,29 +1,31 @@
 #!/bin/bash
 
+cd ..
+
 cd kl25z128
-make clean
+md5sum *.bin
 cd ..
 
 cd lm4f120
-make clean
+md5sum *.bin
 cd ..
 
 cd lm4f232
-make clean
+md5sum *.bin
 cd ..
 
 cd tm4c1294
-make clean
+md5sum *.bin
 cd ..
 
 cd stm32f100
-make clean
+md5sum *.bin
 cd ..
 
 cd stm32f407
-make clean
+md5sum *.bin
 cd ..
 
 cd stm32f429
-make clean
+md5sum *.bin
 cd ..
