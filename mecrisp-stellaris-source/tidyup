@@ -12,6 +12,10 @@ cd lm4f232
 make clean
 cd ..
 
+cd tm4c1294
+make clean
+cd ..
+
 cd stm32f1
 make clean
 cd ..

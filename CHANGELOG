@@ -114,3 +114,7 @@
 21.03.2014, Matthias Koch, Mecrisp-Stellaris 1.0.1:
 
   Bugfix in third loop index "k"
+
+26.03.2014, Matthias Koch, Mecris-Stellaris 1.0.2:
+
+  - New target: TM4C1294 on Tiva Connected Launchpad

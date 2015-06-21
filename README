@@ -22,6 +22,7 @@ a port of Mecrisp to the ARM Cortex M architecture.
 
 It runs out of the box on:
   - TI Stellaris Launchpad       with LM4F120H5QR
+  - TI Tiva Connected Launchpad  with TM4C1294
   - STM VL Discovery             with STM32F100RB
   - STM F4 Discovery             with STM32F407VGT6 
   - Freescale Freedom FRDM-KL25Z with KL25Z128VLK4
@@ -43,6 +44,7 @@ inlining of short words.
 
 Communication is via serial 115200 baud 8N1 over
   - UART0  in LM4F120  (connected to USB-serial bridge on Stellaris Launchpad)
+  - UART0  in TM4C1294 (connected to USB-serial bridge on Tiva Connected Launchpad)
   - USART1 in STM32F1  (TX on PA9, RX on PA10)
   - USART2 in STM32F4  (TX on PA2, RX on PA3)
   - UART0  in KL25Z128 (connected to USB-serial bridge on Freedom board)
@@ -53,6 +55,18 @@ Hardware and configuration for LM4F120:
   Connect your cable to the Debug-USB-Port, 
   set "PWR SELECT" switch to DEBUG and
   close VDD jumper.
+
+  Flashing is possible with lm4flash:
+  https://github.com/utzig/lm4tools
+
+  On startup, this runs with internal PIOSC at 16 MHz, 
+  which is specified +-3% over whole temperature range.
+
+Hardware and configuration for TM4C1294:
+  Connect your cable to the Debug-USB-Port, 
+  set "POWER SELECT" jumpers (JP1) to "ICDI",
+  close both "MCU 3V3" (JP2) and "+3v3" (JP3) jumpers and
+  set communication jumper blocks (JP4 and JP5) both to UART mode.
 
   Flashing is possible with lm4flash:
   https://github.com/utzig/lm4tools
@@ -730,6 +744,56 @@ Interrupts:
   Look into vectors.s and interrupts.s to add more interrupts.
 
 ;------------------------------------------------------------------------------
+; Specials for TM4C1294:
+;------------------------------------------------------------------------------
+
+Flash:
+        eraseflash      ( -- ) Erases everything. Clears Ram. Restarts Forth.
+
+        eraseflashfrom  ( a-addr -- ) Starts erasing at this address.
+                                      Clears Ram. Restarts Forth.
+
+        flashpageerase  ( a-addr -- ) Erase one 16k flash page only. Take care:
+                                      No Reset, no dictionary reinitialisation.
+
+        cflash!         ( char c-addr -- )  Writes byte to flash
+        hflash!         ( u|n a-addr -- )   Writes halfword to flash
+        flash!          ( u|n 4-a-addr -- ) Writes single number to flash, 
+                                              4 aligned !
+Interrupts:
+
+        irq-porta       ( -- a-addr ) Memory locations for IRQ-Hooks
+        irq-portb
+        irq-portc
+        irq-portd
+        irq-porte
+        irq-portf
+        irq-portg
+        irq-porth
+        irq-portj
+        irq-portk
+        irq-portl
+        irq-timer0a
+        irq-timer0b
+        irq-timer1a
+        irq-timer1b
+        irq-timer2a
+        irq-timer2b
+        irq-timer3a
+        irq-timer3b
+        irq-adc0seq0
+        irq-adc0seq1
+        irq-adc0seq2
+        irq-adc0seq3
+        irq-adc1seq0
+        irq-adc1seq1
+        irq-adc1seq2
+        irq-adc1seq3
+        irq-ethernet
+
+  Look into vectors.s and interrupts.s to add more interrupts.
+
+;------------------------------------------------------------------------------
 ; Specials for STM32F1:
 ;------------------------------------------------------------------------------
 
@@ -807,4 +871,4 @@ Interrupts:
 
   Look into vectors.s and interrupts.s to add more interrupts.
 
-Matthias Koch, Summer 2013
+Matthias Koch, Summer 2013, updated Spring 2014
