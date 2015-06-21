@@ -252,6 +252,8 @@ ckomma_fertig:
 hkomma: @ Fügt 16 Bits an das Dictionary an.
 @ -----------------------------------------------------------------------------
   push {r0, r1, r2, r3, lr}
+  uxth tos, tos @ Mask low 16 Bits, just in case.
+
   ldr r0, =Dictionarypointer @ Fetch Dictionarypointer to decide if compiling for RAM or for Flash
   ldr r1, [r0] @ Hole den Dictionarypointer
 

@@ -310,3 +310,8 @@
   - Ported Ledcomm to Nucleo L152
   - Contribution by John Huberts:
       Nordic nRF51822 radio code
+
+06.11.2014, Matthias Koch, Mecrisp-Stellaris 2.0.5
+
+  - New experimental target: LPC1114FN28 (without Flash write access for now)
+  - Unicode block editor added
