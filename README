@@ -34,6 +34,7 @@ It runs out of the box on:
 Contributions:
   - Teensy 3.1                   with MK20DX256VLH7
   - Chinese QF-LM4F232           with LM4F232H5QC
+  -                                   nRF51822
 
 http://mecrisp.sourceforge.net/
 

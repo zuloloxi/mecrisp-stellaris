@@ -1,7 +1,9 @@
 
 Contributions:
 
+nRF51822 port by John Huberts
 MK20DX256 port for Teensy 3.1 board by Mark Schweizer
+Ethernet drivers for TM4C1294 by Bernd Paysan
 Random number generator for STM32F4 by Sean Stasiak
 LM4F232H5QC port for Chinese QF-LM4F232 board by 呂明貴 (Albert)
 

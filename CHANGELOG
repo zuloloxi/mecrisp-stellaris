@@ -190,3 +190,11 @@
   - Added string handling helpers: expect tib >in
   - Contribution by Mark Schweizer:
       MK20DX256VLH7 port for Teensy 3.1 board
+
+26.06.2014, Matthias Koch, Mecrisp-Stellaris 1.1.8
+
+  - Added Loran-C for TM4C1294
+  - Contribution by John Huberts:
+      Port for Nordic nRF51822
+  - Contribution by Bernd Paysan:
+      Ethernet drivers for TM4C1294

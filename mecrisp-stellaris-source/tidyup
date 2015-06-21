@@ -8,6 +8,10 @@ cd mk20dx256
 make clean
 cd ..
 
+cd nrf51822
+make clean
+cd ..
+
 cd lm4f120
 make clean
 cd ..
